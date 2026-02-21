@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+.run-portfolio-run/
+venv/
+env/
+ENV/
+
+# IDE and system files
+.DS_Store
+.claude/
+*.swp
+*.swo
+*~
+
+# Data files (large datasets)
+data/regions/
+*.nc
+*.nc4
+*.grd
+
+# Output files (regenerable)
+outputs/
+results/
+figures/
+*.png
+*.jpg
+!docs/*.png
+!docs/*.svg
+
+# Literature and papers
+papers/
+*.pdf
+de*.pdf
+
+# Specific Excel files to exclude
+RM1-CBS.xlsx
+
+# Personal notes and media
+writing/
+media/
+literature/
+intra-array-transmission-literature/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+energy_generation_results.ipynb
+
+# Documentation (you'll add later)
+docs/
+
+# Documentation (you'll add later)
+docs/
+
+# Temp and misc files
+.run-portfolio-run
+*.log
+CLAUDE.md
+the-complete-workflow.md
+nakhai_model.py
+
+# Scripts to skip for now
+scripts/run_turbine_comparison.py
