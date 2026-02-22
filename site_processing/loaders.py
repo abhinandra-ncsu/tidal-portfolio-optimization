@@ -129,6 +129,14 @@ def load_hycom(file_pattern, target_depth_m, max_missing_fraction):
         water_u = water_u[:, unique_lat_idx, :]
         water_v = water_v[:, unique_lat_idx, :]
 
+    # Deduplicate time dimension — spatial tiles share the same timestamps,
+    # so open_mfdataset can produce duplicate time entries.
+    _, unique_time_idx = np.unique(timestamps, return_index=True)
+    if len(unique_time_idx) < len(timestamps):
+        timestamps = timestamps[unique_time_idx]
+        water_u = water_u[unique_time_idx, :, :]
+        water_v = water_v[unique_time_idx, :, :]
+
     # Check for excessive missing data
     missing_fraction = max(np.sum(np.isnan(water_u)), np.sum(np.isnan(water_v))) / water_u.size
     if missing_fraction > max_missing_fraction:
