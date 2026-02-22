@@ -55,8 +55,8 @@ energy_generation_results.ipynb
 # Documentation (you'll add later)
 docs/
 
-# Documentation (you'll add later)
-docs/
+# Tests (local exploration)
+tests/
 
 # Temp and misc files
 .run-portfolio-run
