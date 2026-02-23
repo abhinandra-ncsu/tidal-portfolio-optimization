@@ -10,7 +10,7 @@ the optimal array placement that minimizes variance.
 
 import numpy as np
 
-from ..costs import calculate_fixed_cost_per_array
+from ..costs import calculate_total_fixed_cost
 from ..costs import calculate_single_inter_array_cost, calculate_transmission_cost
 from ..energy import prepare_energy_data
 from .solver import solve_optimization_model
@@ -77,7 +77,7 @@ def find_viable_collection_points(distance_matrix, cluster_radius_km, min_sites)
 def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
                               distance_matrix, viable_cps, num_arrays,
                               lcoe_target, cluster_radius_km,
-                              fixed_cost_per_array, project_capacity_mw,
+                              total_fixed_cost, project_capacity_mw,
                               array_power_mw, inter_array_voltage_v,
                               power_factor, fcr, capacity_factor,
                               opex_rate, verbose=True):
@@ -95,7 +95,7 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
         num_arrays: Number of arrays to deploy
         lcoe_target: Target LCOE ($/MWh)
         cluster_radius_km: Maximum distance from collection point
-        fixed_cost_per_array: Fixed cost per array ($/year)
+        total_fixed_cost: Total fixed cost for the fleet ($/year)
         project_capacity_mw: Total project capacity (MW)
         array_power_mw: Power per array (MW)
         inter_array_voltage_v: Inter-array cable voltage (V)
@@ -159,7 +159,7 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
             'num_arrays': num_arrays,
             'energy_per_site': energy_subset,
             'covariance_matrix': cov_subset,
-            'fixed_cost_per_array': fixed_cost_per_array,
+            'total_fixed_cost': total_fixed_cost,
             'inter_array_costs': inter_array_costs,
             'transmission_cost': trans['annualized_cost'],
             'lcoe_target': lcoe_target,
@@ -328,8 +328,9 @@ def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
             f"No viable collection points found with radius {cluster_radius_km} km"
         )
 
-    # Calculate fixed cost per array
-    fixed_cost_per_array_val = calculate_fixed_cost_per_array(
+    # Calculate total fixed cost for the fleet (economies of scale)
+    total_fixed_cost = calculate_total_fixed_cost(
+        num_arrays=num_arrays,
         turbines_per_array=turbines_per_array,
         fcr=fcr,
         rows=rows,
@@ -357,7 +358,7 @@ def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
             num_arrays=num_arrays,
             lcoe_target=lcoe_target,
             cluster_radius_km=cluster_radius_km,
-            fixed_cost_per_array=fixed_cost_per_array_val,
+            total_fixed_cost=total_fixed_cost,
             project_capacity_mw=project_capacity_mw,
             array_power_mw=array_power_mw,
             inter_array_voltage_v=inter_array_voltage_v,

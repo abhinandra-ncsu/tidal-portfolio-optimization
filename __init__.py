@@ -51,7 +51,7 @@ from .optimization import (
 # Cost functions
 from .costs import (
     calculate_total_cost,
-    calculate_fixed_cost_per_array,
+    calculate_total_fixed_cost,
     calculate_device_cost,
     calculate_transmission_cost,
     calculate_inter_array_cost,
@@ -97,7 +97,7 @@ __all__ = [
     "save_optimization_results",
     # Cost functions
     "calculate_total_cost",
-    "calculate_fixed_cost_per_array",
+    "calculate_total_fixed_cost",
     "calculate_device_cost",
     "calculate_transmission_cost",
     "calculate_inter_array_cost",

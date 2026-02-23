@@ -59,7 +59,7 @@ def validate_model_inputs(n_candidates, num_arrays, energy_per_site,
 
 
 def build_optimization_model(n_candidates, num_arrays, energy_per_site,
-                              covariance_matrix, fixed_cost_per_array,
+                              covariance_matrix, total_fixed_cost,
                               inter_array_costs, transmission_cost,
                               lcoe_target):
     """
@@ -81,7 +81,7 @@ def build_optimization_model(n_candidates, num_arrays, energy_per_site,
         num_arrays: Number of arrays to deploy
         energy_per_site: Net annual energy per site (MWh/year)
         covariance_matrix: Covariance matrix (n x n)
-        fixed_cost_per_array: Device + intra-array cost ($/year)
+        total_fixed_cost: Device + intra-array cost ($/year)
         inter_array_costs: Inter-array cable cost per site ($/year)
         transmission_cost: Export cable cost ($/year)
         lcoe_target: Maximum LCOE ($/MWh)
@@ -106,7 +106,7 @@ def build_optimization_model(n_candidates, num_arrays, energy_per_site,
     model.energy = energy_per_site
     model.cov_matrix = covariance_matrix
     model.inter_array_costs = inter_array_costs
-    model.fixed_cost = fixed_cost_per_array
+    model.total_fixed_cost = total_fixed_cost
     model.transmission_cost = transmission_cost
     model.num_arrays = num_arrays
     model.lcoe_target = lcoe_target
@@ -134,15 +134,15 @@ def build_optimization_model(n_candidates, num_arrays, energy_per_site,
     # -----------------------------------------------------------------
     # Constraint 2: LCOE <= target
     # -----------------------------------------------------------------
-    # Total Cost = N * fixed + sum(inter_array * x) + transmission
+    # Total Cost = total_fixed + sum(inter_array * x) + transmission
     # Total Energy = sum(energy * x)
     # LCOE = Total Cost / Total Energy <= target
     #
     # Rearranged (linear form):
-    # N * fixed + sum(inter_array * x) + transmission - target * sum(energy * x) <= 0
+    # total_fixed + sum(inter_array * x) + transmission - target * sum(energy * x) <= 0
 
     def lcoe_rule(m):
-        total_fixed = m.num_arrays * m.fixed_cost
+        total_fixed = m.total_fixed_cost
         total_inter_array = sum(m.inter_array_costs[i] * m.x[i] for i in m.Sites)
         total_energy = sum(m.energy[i] * m.x[i] for i in m.Sites)
 
@@ -184,7 +184,7 @@ def get_model_objective_value(pyomo_model):
 
 
 def evaluate_solution(x, n_candidates, num_arrays, energy_per_site,
-                       covariance_matrix, fixed_cost_per_array,
+                       covariance_matrix, total_fixed_cost,
                        inter_array_costs, transmission_cost):
     """
     Evaluate metrics for a given binary solution vector.
@@ -195,7 +195,7 @@ def evaluate_solution(x, n_candidates, num_arrays, energy_per_site,
         num_arrays: Number of arrays deployed
         energy_per_site: Net annual energy per site (MWh/year)
         covariance_matrix: Covariance matrix (n x n)
-        fixed_cost_per_array: Device + intra-array cost ($/year)
+        total_fixed_cost: Device + intra-array cost ($/year)
         inter_array_costs: Inter-array cable cost per site ($/year)
         transmission_cost: Export cable cost ($/year)
 
@@ -207,7 +207,7 @@ def evaluate_solution(x, n_candidates, num_arrays, energy_per_site,
     variance = float(x @ covariance_matrix @ x)
 
     # Costs
-    total_fixed = num_arrays * fixed_cost_per_array
+    total_fixed = total_fixed_cost
     total_inter_array = float(np.sum(inter_array_costs * x))
     total_cost = total_fixed + total_inter_array + transmission_cost
 

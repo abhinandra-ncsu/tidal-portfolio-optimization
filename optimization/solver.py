@@ -36,7 +36,7 @@ def solve_with_gurobi(pyomo_model, model_inputs, timeout=300, verbose=False):
         pyomo_model: Built Pyomo ConcreteModel (from build_optimization_model)
         model_inputs: Dict with model input arrays, used for solution evaluation.
             Required keys: n_candidates, num_arrays, energy_per_site,
-            covariance_matrix, fixed_cost_per_array, inter_array_costs,
+            covariance_matrix, total_fixed_cost, inter_array_costs,
             transmission_cost
         timeout: Solver time limit in seconds
         verbose: Print solver output
@@ -79,7 +79,7 @@ def solve_with_gurobi(pyomo_model, model_inputs, timeout=300, verbose=False):
         num_arrays=model_inputs['num_arrays'],
         energy_per_site=model_inputs['energy_per_site'],
         covariance_matrix=model_inputs['covariance_matrix'],
-        fixed_cost_per_array=model_inputs['fixed_cost_per_array'],
+        total_fixed_cost=model_inputs['total_fixed_cost'],
         inter_array_costs=model_inputs['inter_array_costs'],
         transmission_cost=model_inputs['transmission_cost'],
     )
@@ -115,7 +115,7 @@ def solve_optimization_model(model_inputs, timeout=300, verbose=False):
     Args:
         model_inputs: Dict with all model inputs.
             Required keys: n_candidates, num_arrays, energy_per_site,
-            covariance_matrix, fixed_cost_per_array, inter_array_costs,
+            covariance_matrix, total_fixed_cost, inter_array_costs,
             transmission_cost, lcoe_target
         timeout: Solver timeout in seconds (default: 300)
         verbose: Print solver output
@@ -132,7 +132,7 @@ def solve_optimization_model(model_inputs, timeout=300, verbose=False):
         num_arrays=model_inputs['num_arrays'],
         energy_per_site=model_inputs['energy_per_site'],
         covariance_matrix=model_inputs['covariance_matrix'],
-        fixed_cost_per_array=model_inputs['fixed_cost_per_array'],
+        total_fixed_cost=model_inputs['total_fixed_cost'],
         inter_array_costs=model_inputs['inter_array_costs'],
         transmission_cost=model_inputs['transmission_cost'],
         lcoe_target=model_inputs['lcoe_target'],

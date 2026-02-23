@@ -6,7 +6,7 @@ Functions for calculating tidal project costs.
 
 Main functions:
     - calculate_total_cost: Complete cost breakdown for a project
-    - calculate_fixed_cost_per_array: Fixed costs per array
+    - calculate_total_fixed_cost: Fixed costs per array
     - calculate_device_cost: Turbine lifecycle costs
     - calculate_transmission_cost: HVAC/HVDC transmission costs
     - calculate_inter_array_cost: Array to collection point cables
@@ -35,7 +35,7 @@ Example:
 # Main aggregator functions
 from .aggregator import (
     calculate_total_cost,
-    calculate_fixed_cost_per_array,
+    calculate_total_fixed_cost,
 )
 
 # Device cost functions
@@ -59,7 +59,7 @@ from .electrical import (
 __all__ = [
     # Main functions
     "calculate_total_cost",
-    "calculate_fixed_cost_per_array",
+    "calculate_total_fixed_cost",
     # Device
     "calculate_device_cost",
     "calculate_capex_breakdown",

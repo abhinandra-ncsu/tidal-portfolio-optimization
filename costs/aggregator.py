@@ -117,16 +117,18 @@ def calculate_total_cost(num_arrays, inter_array_distances_km, shore_distance_km
     }
 
 
-def calculate_fixed_cost_per_array(turbines_per_array, fcr, rows, cols,
-                                    turbine_power_mw, power_factor,
-                                    row_spacing_km, col_spacing_km,
-                                    intra_array_voltage_v):
+def calculate_total_fixed_cost(num_arrays, turbines_per_array, fcr, rows, cols,
+                                turbine_power_mw, power_factor,
+                                row_spacing_km, col_spacing_km,
+                                intra_array_voltage_v):
     """
-    Calculate fixed cost per array (device + intra-array).
+    Calculate total fixed cost for the entire fleet (device + intra-array).
 
-    This is constant regardless of site location.
+    Computes device cost for all turbines at once to capture economies of
+    scale (sublinear power laws, fixed infrastructure overheads).
 
     Args:
+        num_arrays: Number of arrays in the fleet
         turbines_per_array: Turbines per array
         fcr: Fixed Charge Rate (e.g., 0.113 = 11.3%)
         rows: Array rows
@@ -138,11 +140,12 @@ def calculate_fixed_cost_per_array(turbines_per_array, fcr, rows, cols,
         intra_array_voltage_v: Intra-array cable voltage in volts
 
     Returns:
-        Fixed cost per array in $/year
+        Total fixed cost for the fleet in $/year
     """
-    device = calculate_device_cost(turbines_per_array, fcr=fcr)
+    total_turbines = num_arrays * turbines_per_array
+    device = calculate_device_cost(total_turbines, fcr=fcr)
     intra = calculate_intra_array_cost_for_arrays(
-        1, rows=rows, cols=cols,
+        num_arrays, rows=rows, cols=cols,
         turbine_power_mw=turbine_power_mw, power_factor=power_factor,
         row_spacing_km=row_spacing_km, col_spacing_km=col_spacing_km,
         voltage_v=intra_array_voltage_v, fcr=fcr,
