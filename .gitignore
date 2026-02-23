@@ -20,6 +20,7 @@ ENV/
 
 # Data files (large datasets)
 data/regions/
+data/shapefiles_combined/
 *.nc
 *.nc4
 *.grd
@@ -34,6 +35,7 @@ figures/
 !docs/*.svg
 
 # Literature and papers
+paper/
 papers/
 *.pdf
 de*.pdf
