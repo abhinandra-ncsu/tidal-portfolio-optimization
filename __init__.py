@@ -46,6 +46,10 @@ from .optimization import (
     get_best_result,
     get_feasible_count,
     save_optimization_results,
+    run_multi_cp_optimization,
+    get_best_multi_cp_result,
+    solve_multi_cp_model,
+    build_multi_cp_model,
 )
 
 # Cost functions
@@ -95,6 +99,11 @@ __all__ = [
     "get_best_result",
     "get_feasible_count",
     "save_optimization_results",
+    # Multi-CP optimization
+    "run_multi_cp_optimization",
+    "get_best_multi_cp_result",
+    "solve_multi_cp_model",
+    "build_multi_cp_model",
     # Cost functions
     "calculate_total_cost",
     "calculate_total_fixed_cost",

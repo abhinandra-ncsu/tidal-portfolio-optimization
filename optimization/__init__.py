@@ -44,6 +44,18 @@ from .model import (
     evaluate_solution,
 )
 
+# Multi-CP optimization
+from .multi_cp_portfolio import (
+    run_multi_cp_optimization,
+    get_best_multi_cp_result,
+)
+from .multi_cp_solver import solve_multi_cp_model
+from .multi_cp_model import (
+    build_multi_cp_model,
+    find_cp_candidates,
+    build_sparse_arcs,
+)
+
 # Result saving
 from .save_results import save_optimization_results
 
@@ -64,6 +76,13 @@ __all__ = [
     "get_model_solution",
     "get_model_objective_value",
     "evaluate_solution",
+    # Multi-CP optimization
+    "run_multi_cp_optimization",
+    "get_best_multi_cp_result",
+    "solve_multi_cp_model",
+    "build_multi_cp_model",
+    "find_cp_candidates",
+    "build_sparse_arcs",
     # Result saving
     "save_optimization_results",
 ]
