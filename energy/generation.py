@@ -49,23 +49,18 @@ def apply_power_curve(current_speeds, cut_in_speed, rated_speed, cut_out_speed, 
     return power
 
 
-def calculate_capacity_factor(current_speeds, cut_in_speed, rated_speed, cut_out_speed, rated_power_mw):
+def calculate_capacity_factor(power_timeseries, rated_power_mw):
     """
-    Calculate capacity factor from current speed timeseries.
+    Calculate capacity factor from a power timeseries.
 
     Args:
-        current_speeds: Array of current speeds in m/s
-        cut_in_speed: Cut-in speed in m/s
-        rated_speed: Rated speed in m/s
-        cut_out_speed: Cut-out speed in m/s
+        power_timeseries: Array of power outputs in MW
         rated_power_mw: Rated power in MW
 
     Returns:
         Capacity factor (0-1 scale)
     """
-    power = apply_power_curve(current_speeds, cut_in_speed, rated_speed, cut_out_speed, rated_power_mw)
-    mean_power = np.mean(power)
-    return mean_power / rated_power_mw
+    return np.mean(power_timeseries) / rated_power_mw
 
 
 def calculate_energy_vector(capacity_factors, rated_power_mw, turbines_per_array, wake_loss_factor):

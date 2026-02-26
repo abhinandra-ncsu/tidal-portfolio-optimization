@@ -143,21 +143,8 @@ def prepare_utide_input(raw_data, processed_data, output_dir, verbose=True):
 
     # Convert timestamps to formatted strings for MATLAB datenum parsing
     # Format: "dd-mmm-yyyy HH:MM:SS" (e.g., "01-Jan-2020 00:00:00")
-    ts_series = pd.to_datetime(timestamps)
-
-    # Deduplicate timestamps (multi-file HYCOM merge can create duplicates)
-    unique_mask = ~ts_series.duplicated(keep='first')
-    ts_series = ts_series[unique_mask]
-    water_u = water_u[unique_mask]
-    water_v = water_v[unique_mask]
-
-    # Sort by time
-    sort_idx = ts_series.argsort()
-    ts_series = ts_series[sort_idx]
-    water_u = water_u[sort_idx]
-    water_v = water_v[sort_idx]
-
-    formatted_times = ts_series.strftime("%d-%b-%Y %H:%M:%S").values
+    # Note: load_hycom() already deduplicates and sorts timestamps
+    formatted_times = pd.to_datetime(timestamps).strftime("%d-%b-%Y %H:%M:%S").values
 
     # Get filtered site coordinates
     site_lats = processed_data['latitudes']
@@ -252,7 +239,7 @@ def process_utide_output(processed_data, utide_output_dir,
             - tidal_mean_speeds_ms: (n_sites,) tidal mean speed m/s
             Sites without UTide output get NaN values.
     """
-    from ..energy.generation import apply_power_curve
+    from ..energy.generation import apply_power_curve, calculate_capacity_factor
 
     sio = _require_scipy_io()
 
@@ -300,14 +287,6 @@ def process_utide_output(processed_data, utide_output_dir,
             # Compute tidal speed magnitude
             speed = np.sqrt(u_recon**2 + v_recon**2)
 
-            # Handle length mismatches (UTide may return different length
-            # due to timestamp deduplication in prepare step)
-            if len(speed) > n_timesteps:
-                speed = speed[:n_timesteps]
-            elif len(speed) < n_timesteps:
-                pad_length = n_timesteps - len(speed)
-                speed = np.concatenate([speed, np.full(pad_length, speed.mean())])
-
             # Store tidal speed
             tidal_speeds[i, :] = speed
             tidal_mean_speed[i] = np.mean(speed)
@@ -315,7 +294,7 @@ def process_utide_output(processed_data, utide_output_dir,
             # Apply turbine power curve to tidal speeds
             power_ts = apply_power_curve(speed, cut_in, rated, cut_out, rated_power)
             tidal_power[i, :] = power_ts
-            tidal_cf[i] = np.mean(power_ts) / rated_power
+            tidal_cf[i] = calculate_capacity_factor(power_ts, rated_power)
 
             n_loaded += 1
 

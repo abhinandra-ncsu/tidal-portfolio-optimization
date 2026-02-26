@@ -109,7 +109,7 @@ def process_sites(latitudes, longitudes, current_speeds, depths, dist_to_shore,
         power_ts = apply_power_curve(current_speeds[i], cut_in, rated, cut_out, rated_power)
 
         # Calculate metrics
-        cf = calculate_capacity_factor(current_speeds[i], cut_in, rated, cut_out, rated_power)
+        cf = calculate_capacity_factor(power_ts, rated_power)
         mean_speed = np.mean(current_speeds[i])
 
         # Apply filters

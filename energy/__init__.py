@@ -6,7 +6,7 @@ Functions for energy generation and portfolio variance calculations.
 
 Main functions:
     - apply_power_curve: Convert current speeds to power output
-    - calculate_capacity_factor: Get capacity factor from speed timeseries
+    - calculate_capacity_factor: Get capacity factor from power timeseries
     - calculate_energy_vector: Get annual energy for multiple sites
     - calculate_covariance: Get covariance matrix for portfolio optimization
     - prepare_energy_data: Convenience function to prepare all energy data
