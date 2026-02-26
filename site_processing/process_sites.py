@@ -42,7 +42,7 @@ Example:
 import numpy as np
 
 # Import power curve from energy module (canonical location)
-from ..energy.generation import apply_power_curve
+from ..energy.generation import apply_power_curve, calculate_capacity_factor
 
 
 def process_sites(latitudes, longitudes, current_speeds, depths, dist_to_shore,
@@ -109,7 +109,7 @@ def process_sites(latitudes, longitudes, current_speeds, depths, dist_to_shore,
         power_ts = apply_power_curve(current_speeds[i], cut_in, rated, cut_out, rated_power)
 
         # Calculate metrics
-        cf = np.mean(power_ts) / rated_power
+        cf = calculate_capacity_factor(current_speeds[i], cut_in, rated, cut_out, rated_power)
         mean_speed = np.mean(current_speeds[i])
 
         # Apply filters
