@@ -60,22 +60,6 @@ def prepare_energy_data(capacity_factors, power_timeseries, rated_power_mw,
     }
 
 
-def get_energy_for_sites(energy_vector, site_indices=None):
-    """
-    Get energy vector for selected sites.
-
-    Args:
-        energy_vector: Full energy vector (all sites)
-        site_indices: Indices of selected sites (None = all sites)
-
-    Returns:
-        Energy vector for selected sites
-    """
-    if site_indices is None:
-        return energy_vector.copy()
-    return energy_vector[site_indices]
-
-
 def get_covariance_for_sites(covariance_matrix, site_indices=None):
     """
     Get covariance matrix for selected sites.
@@ -90,17 +74,3 @@ def get_covariance_for_sites(covariance_matrix, site_indices=None):
     if site_indices is None:
         return covariance_matrix.copy()
     return get_covariance_subset(covariance_matrix, site_indices)
-
-
-def calculate_total_energy(energy_vector, selected_indices):
-    """
-    Calculate total energy for selected sites.
-
-    Args:
-        energy_vector: Energy per site (MWh)
-        selected_indices: Indices of selected sites
-
-    Returns:
-        Total annual energy in MWh
-    """
-    return float(np.sum(energy_vector[selected_indices]))

@@ -42,17 +42,10 @@ from .covariance import (
     calculate_portfolio_variance,
 )
 
-# Wake loss functions
-from .wake_losses import (
-    apply_wake_loss,
-)
-
 # Convenience functions
 from .model import (
     prepare_energy_data,
-    get_energy_for_sites,
     get_covariance_for_sites,
-    calculate_total_energy,
 )
 
 __all__ = [
@@ -64,11 +57,7 @@ __all__ = [
     "calculate_covariance",
     "get_covariance_subset",
     "calculate_portfolio_variance",
-    # Wake losses
-    "apply_wake_loss",
     # Convenience
     "prepare_energy_data",
-    "get_energy_for_sites",
     "get_covariance_for_sites",
-    "calculate_total_energy",
 ]
