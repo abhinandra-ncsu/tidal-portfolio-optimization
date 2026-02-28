@@ -81,7 +81,8 @@ def calculate_string_cable_cost(num_turbines, turbine_power_mw,
     """
     Calculate total cable cost for one string of turbines.
 
-    Each cable segment carries accumulated power from upstream turbines.
+    For N turbines there are N-1 cable segments between them (daisy chain).
+    Segment i carries accumulated power from (i+1) upstream turbines.
     Cost is calculated segment-by-segment using the Collin 2017 model.
 
     Args:
@@ -98,7 +99,8 @@ def calculate_string_cable_cost(num_turbines, turbine_power_mw,
     total_cost = 0.0
     total_length = 0.0
 
-    for i in range(num_turbines):
+    # N turbines → N-1 cable segments between them
+    for i in range(num_turbines - 1):
         num_upstream = i + 1
         power_mw = num_upstream * turbine_power_mw
         mva = calculate_mva(power_mw, power_factor)
@@ -143,11 +145,12 @@ def calculate_intra_array_cost(rows, cols, turbine_power_mw,
     - Submarine cables at specified voltage level
     - LV (690V) to MV transformers at each turbine
 
-    Array topology assumed:
+    Array topology:
     - Grid layout with 'rows' horizontal strings of 'cols' turbines each
     - Each turbine has a 690V to MV step-up transformer
-    - Cables within strings carry accumulated power from upstream turbines
-    - Strings connected via row cables to array collector
+    - N turbines per string → N-1 daisy-chain cable segments
+    - Collection point at the middle string (minimizes row cable length)
+    - Row cables connect each string's end to the collection point
 
     Args:
         rows: Number of rows/strings in array
@@ -181,12 +184,16 @@ def calculate_intra_array_cost(rows, cols, turbine_power_mw,
     string_cable_length = string_result['total_length_km'] * rows
 
     # Row connection cables (connecting strings to collector)
-    # Each row cable carries the full string power
+    # Collection point is at the middle string to minimize total cable length.
+    # Each row cable carries the full string power.
     string_mva = calculate_mva(cols * turbine_power_mw, power_factor)
     row_cable_cost_per_km = calculate_cable_cost_per_km(string_mva, voltage_v)
 
-    # (rows - 1) row cables, each of length row_spacing_km
-    row_cable_length = (rows - 1) * row_spacing_km
+    # Each string's distance to the middle string: |i - middle| * row_spacing
+    middle = rows // 2
+    row_cable_length = sum(
+        abs(i - middle) * row_spacing_km for i in range(rows)
+    )
     row_cable_cost = row_cable_length * row_cable_cost_per_km
 
     total_cable_length = string_cable_length + row_cable_length
