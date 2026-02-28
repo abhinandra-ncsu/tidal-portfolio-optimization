@@ -37,7 +37,7 @@ __version__ = "4.0.0"
 __author__ = "Tidal Energy Project"
 
 # Turbine loading
-from .site_processing.turbine import load_turbine, list_available_turbines
+from .site_processing.turbine import load_turbine
 
 # Main optimization functions
 from .optimization import (
@@ -88,7 +88,6 @@ from .visualization import (
 __all__ = [
     # Turbine loading
     "load_turbine",
-    "list_available_turbines",
     # Main optimization functions
     "run_portfolio_optimization",
     "calculate_distance_matrix",

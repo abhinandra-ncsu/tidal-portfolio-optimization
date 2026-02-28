@@ -405,7 +405,7 @@ def load_site_results(npz_path, require_tidal=False):
         (site_data, config) tuple where:
         - site_data: dict with latitudes, longitudes, capacity_factors,
           dist_to_shore_km, power_timeseries, depths_m,
-          mean_speeds_ms, n_sites, n_raw_sites. When tidal data is present,
+          n_sites, n_raw_sites. When tidal data is present,
           also includes tidal_capacity_factors and tidal_power_timeseries.
         - config: dict with turbine_name, rated_power_mw, cut_in_speed_ms,
           rated_speed_ms, cut_out_speed_ms, rotor_diameter_m.
@@ -430,7 +430,6 @@ def load_site_results(npz_path, require_tidal=False):
         "dist_to_shore_km": data["dist_to_shore_km"],
         "power_timeseries": data["power_timeseries"],
         "depths_m": data["depths_m"],
-        "mean_speeds_ms": data["mean_speeds_ms"],
         "n_sites": int(data["n_sites"]),
         "n_raw_sites": int(data["n_raw_sites"]),
     }

@@ -25,9 +25,6 @@ Example:
 """
 
 from .loaders import (
-    load_hycom,
-    load_gebco,
-    load_shoreline,
     load_all,
     flatten_grid_data,
     load_site_results,
@@ -44,14 +41,10 @@ from .utide_bridge import (
 
 from .turbine import (
     load_turbine,
-    list_available_turbines,
     TurbineNotFoundError,
 )
 
 __all__ = [
-    "load_hycom",
-    "load_gebco",
-    "load_shoreline",
     "load_all",
     "flatten_grid_data",
     "load_site_results",
@@ -59,6 +52,5 @@ __all__ = [
     "prepare_utide_input",
     "process_utide_output",
     "load_turbine",
-    "list_available_turbines",
     "TurbineNotFoundError",
 ]

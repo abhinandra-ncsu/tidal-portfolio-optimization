@@ -12,7 +12,6 @@ For turbine loading, see site_processing.turbine.
 """
 
 from pathlib import Path
-import glob as _glob
 
 
 # =============================================================================
@@ -36,22 +35,13 @@ DC_CABLE_DATA_PATH = str(DATA_DIR / "cables" / "DC_Cables_Param.xlsx")
 # =============================================================================
 
 
-def _find_gebco(gebco_dir):
-    """Find the first .nc file in a GEBCO directory."""
-    gebco_dir = Path(gebco_dir)
-    matches = sorted(gebco_dir.glob("*.nc"))
+def _find_first_file(directory, extension):
+    """Find the first file with the given extension in a directory."""
+    directory = Path(directory)
+    matches = sorted(directory.glob(f"*.{extension}"))
     if matches:
         return str(matches[0])
-    return str(gebco_dir / "*.nc")  # fallback pattern for error messages
-
-
-def _find_shapefile(shp_dir):
-    """Find the first .shp file in a shapefiles directory."""
-    shp_dir = Path(shp_dir)
-    matches = sorted(shp_dir.glob("*.shp"))
-    if matches:
-        return str(matches[0])
-    return str(shp_dir / "*.shp")  # fallback pattern for error messages
+    return str(directory / f"*.{extension}")  # fallback pattern for error messages
 
 
 def get_region_paths(region_name=None):
@@ -83,8 +73,8 @@ def get_region_paths(region_name=None):
         "region_name": region,
         "region_dir": str(region_dir),
         "hycom_pattern": str(region_dir / "hycom" / "*.nc"),
-        "gebco_path": _find_gebco(region_dir / "gebco"),
-        "shoreline_path": _find_shapefile(region_dir / "shapefiles"),
+        "gebco_path": _find_first_file(region_dir / "gebco", "nc"),
+        "shoreline_path": _find_first_file(region_dir / "shapefiles", "shp"),
         # Output paths
         "output_dir": str(output_dir),
         "utide_input_dir": str(output_dir / "utide_input"),

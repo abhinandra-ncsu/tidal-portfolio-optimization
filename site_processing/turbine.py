@@ -6,7 +6,6 @@ Loads turbine specifications from a CSV database.
 
 Functions:
     - load_turbine: Load a single turbine spec by name → dict
-    - list_available_turbines: List all turbine names in the CSV
 
 Example:
     from tidal_portfolio.site_processing.turbine import load_turbine
@@ -19,10 +18,6 @@ import csv
 from pathlib import Path
 
 from tidal_portfolio.config import TURBINE_CSV_PATH
-
-
-# Default path to turbine specifications CSV (from config.py)
-DEFAULT_TURBINE_CSV_PATH = TURBINE_CSV_PATH
 
 
 class TurbineNotFoundError(Exception):
@@ -57,7 +52,7 @@ def load_turbine(turbine_name, csv_path=None):
         If required columns are missing or values are invalid.
     """
     if csv_path is None:
-        csv_path = DEFAULT_TURBINE_CSV_PATH
+        csv_path = TURBINE_CSV_PATH
     csv_path = Path(csv_path)
 
     if not csv_path.exists():
@@ -147,43 +142,3 @@ def _parse_csv_row(row, turbine_name):
         "cut_out_speed_ms": parse_float(row["CUT_OUT_SPEED"], "CUT_OUT_SPEED"),
         "rotor_diameter_m": parse_float(row["ROTOR_DIAMETER"], "ROTOR_DIAMETER"),
     }
-
-
-def list_available_turbines(csv_path=None):
-    """
-    List all available turbine names in the CSV database.
-
-    Parameters
-    ----------
-    csv_path : str or Path, optional
-        Path to the CSV file. Defaults to data/turbine_specifications.csv.
-
-    Returns
-    -------
-    list of str
-        List of turbine names available in the database.
-
-    Raises
-    ------
-    FileNotFoundError
-        If the CSV file does not exist.
-    """
-    if csv_path is None:
-        csv_path = DEFAULT_TURBINE_CSV_PATH
-    csv_path = Path(csv_path)
-
-    if not csv_path.exists():
-        raise FileNotFoundError(
-            f"Turbine database not found: {csv_path}\n"
-            f"Please provide a valid path to your turbine specifications CSV file."
-        )
-
-    turbines = []
-    with open(csv_path, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            device = row.get("DEVICE", "").strip()
-            if device:
-                turbines.append(device)
-
-    return turbines
