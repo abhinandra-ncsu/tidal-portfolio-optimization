@@ -6,9 +6,7 @@ Central location for all configuration parameters and constants used
 throughout the tidal portfolio optimization system.
 
 Module-level constants plus a ``get_region_paths()`` helper that returns
-all data paths for a given region. Legacy path constants (``HYCOM_PATTERN``,
-``GEBCO_PATH``, etc.) are derived from the default region for backward
-compatibility.
+all data paths for a given region.
 
 For turbine loading, see site_processing.turbine.
 """
@@ -94,15 +92,6 @@ def get_region_paths(region_name=None):
         "pipeline_results_dir": str(output_dir / "pipeline_results"),
         "plots_dir": str(output_dir / "plots"),
     }
-
-
-# Legacy constants — derived from default region for backward compatibility
-_default_paths = get_region_paths(DEFAULT_REGION)
-HYCOM_PATTERN = _default_paths["hycom_pattern"]
-GEBCO_PATH = _default_paths["gebco_path"]
-SHORELINE_PATH = _default_paths["shoreline_path"]
-UTIDE_INPUT_DIR = _default_paths["utide_input_dir"]
-UTIDE_OUTPUT_DIR = _default_paths["utide_output_dir"]
 
 
 # =============================================================================

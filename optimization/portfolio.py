@@ -147,7 +147,7 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
         ])
 
         # Transmission cost
-        shore_dist = site_data['dist_to_shore'][cp_idx]
+        shore_dist = site_data['dist_to_shore_km'][cp_idx]
         trans = calculate_transmission_cost(
             shore_dist, project_capacity_mw,
             capacity_factor=capacity_factor, fcr=fcr, opex_rate=opex_rate,
@@ -186,7 +186,7 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
             print(f"    LCOE achieved: ${best_result['lcoe']:.0f}/MWh")
 
         # Get transmission mode
-        shore_dist = site_data['dist_to_shore'][best_cp]
+        shore_dist = site_data['dist_to_shore_km'][best_cp]
         trans = calculate_transmission_cost(
             shore_dist, project_capacity_mw,
             capacity_factor=capacity_factor, fcr=fcr, opex_rate=opex_rate,

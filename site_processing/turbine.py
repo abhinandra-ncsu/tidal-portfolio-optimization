@@ -44,7 +44,7 @@ def load_turbine(turbine_name, csv_path=None):
     Returns
     -------
     dict
-        Turbine specification with keys: name, turbine_name, rated_power_mw,
+        Turbine specification with keys: name, rated_power_mw,
         cut_in_speed_ms, rated_speed_ms, cut_out_speed_ms, rotor_diameter_m.
 
     Raises
@@ -105,10 +105,22 @@ def load_turbine(turbine_name, csv_path=None):
 
 
 def _parse_csv_row(row, turbine_name):
-    """Parse a CSV row into a turbine dict.
+    """Parse a CSV row into a turbine specification dict.
 
     All fields are required — raises ValueError if any value is
     missing or cannot be parsed as a float.
+
+    Args:
+        row: Dict from csv.DictReader with DEVICE, RATED_POWER,
+            CUT_IN_SPEED, RATED_SPEED, CUT_OUT_SPEED, ROTOR_DIAMETER.
+        turbine_name: Turbine name (for error messages).
+
+    Returns:
+        dict with keys: name, rated_power_mw, cut_in_speed_ms,
+        rated_speed_ms, cut_out_speed_ms, rotor_diameter_m.
+
+    Raises:
+        ValueError: If any required field is missing or non-numeric.
     """
 
     def parse_float(value, field_name):
@@ -129,7 +141,6 @@ def _parse_csv_row(row, turbine_name):
 
     return {
         "name": turbine_name,
-        "turbine_name": turbine_name,
         "rated_power_mw": rated_power_mw,
         "cut_in_speed_ms": parse_float(row["CUT_IN_SPEED"], "CUT_IN_SPEED"),
         "rated_speed_ms": parse_float(row["RATED_SPEED"], "RATED_SPEED"),

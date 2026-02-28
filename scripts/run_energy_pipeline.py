@@ -31,10 +31,7 @@ sys.path.insert(0, str(ROOT_DIR.parent))
 
 from tidal_portfolio import load_turbine
 from tidal_portfolio.site_processing import load_all, flatten_grid_data, process_sites
-from tidal_portfolio.config import (
-    HOURS_PER_YEAR,
-    get_region_paths,
-)
+from tidal_portfolio.config import get_region_paths
 
 # =============================================================================
 # CONFIGURATION - Modify these parameters as needed
@@ -134,7 +131,7 @@ def load_and_process_data(turbine):
     )
     in_range = np.sum((valid_depths >= MIN_DEPTH_M) & (valid_depths <= MAX_DEPTH_M))
     print(f"                  {in_range} sites in [{MIN_DEPTH_M}, {MAX_DEPTH_M}] m")
-    valid_dist = flat["dist_to_shore"][~np.isnan(flat["dist_to_shore"])]
+    valid_dist = flat["dist_to_shore_km"][~np.isnan(flat["dist_to_shore_km"])]
     print(
         f"      Shore dist: {len(valid_dist)}/{flat['n_sites']} valid, "
         f"range [{np.min(valid_dist):.1f}, {np.max(valid_dist):.1f}] km, "
@@ -163,7 +160,7 @@ def load_and_process_data(turbine):
         longitudes=flat["longitudes"],
         current_speeds=flat["current_speeds"],
         depths=flat["depths"],
-        dist_to_shore=flat["dist_to_shore"],
+        dist_to_shore=flat["dist_to_shore_km"],
         # Turbine parameters from CSV (not hardcoded defaults)
         cut_in=turbine["cut_in_speed_ms"],
         rated=turbine["rated_speed_ms"],
@@ -181,12 +178,17 @@ def load_and_process_data(turbine):
 
     # Stage 4 (optional): UTide auto-detect — prepare input or load output
     if CURRENT_MODE == "tidal":
-        from tidal_portfolio.site_processing import prepare_utide_input, process_utide_output
+        from tidal_portfolio.site_processing import (
+            prepare_utide_input,
+            process_utide_output,
+        )
         from tidal_portfolio.site_processing.utide_bridge import format_coord_key
 
         # Check if UTide output exists for the filtered sites
         utide_out_dir = Path(UTIDE_OUTPUT_DIR)
-        sample_key = format_coord_key(processed["latitudes"][0], processed["longitudes"][0])
+        sample_key = format_coord_key(
+            processed["latitudes"][0], processed["longitudes"][0]
+        )
         utide_ready = (utide_out_dir / f"{sample_key}.mat").exists()
 
         if not utide_ready:
@@ -202,7 +204,9 @@ def load_and_process_data(turbine):
             print("\n" + "!" * 70)
             print("MANUAL STEP REQUIRED: Run MATLAB UTide analysis")
             print("!" * 70)
-            print(f"  {summary['n_prepared']} .mat files created in {summary['output_dir']}")
+            print(
+                f"  {summary['n_prepared']} .mat files created in {summary['output_dir']}"
+            )
             print(f"  1. Open MATLAB")
             print(f"  2. cd '{ROOT_DIR}'")
             print(f"  3. Run: run('scripts/run_utide_analysis')")
@@ -223,184 +227,6 @@ def load_and_process_data(turbine):
             )
 
     return raw_data, flat, processed
-
-
-# =============================================================================
-# SUMMARY PRINTING
-# =============================================================================
-
-
-def print_summary(raw_data, flat, processed, turbine):
-    """
-    Print detailed numerical summary of each pipeline stage.
-
-    All energy metrics are per single turbine (no array scaling, no wake losses).
-    When processed contains tidal data (from process_utide_output), also
-    prints a tidal vs total comparison.
-
-    Args:
-        raw_data: Dict from load_all()
-        flat: Dict from flatten_grid_data()
-        processed: Dict from process_sites(), optionally with tidal fields
-        turbine: dict with turbine specs
-    """
-    print("\n" + "=" * 70)
-    print("SITE CHARACTERIZATION SUMMARY")
-    print("=" * 70)
-
-    # --- Data Loading ---
-    print("\n--- Data Loading ---")
-    print(f"  Grid dimensions:    {raw_data['n_lat']} lat × {raw_data['n_lon']} lon")
-    print(f"  Total grid points:  {flat['n_sites']}")
-    print(f"  Timesteps:          {raw_data['n_timesteps']}")
-    print(f"  HYCOM depth layer:  {raw_data['depth_extracted_m']} m")
-    lat_range = (raw_data["latitudes"].min(), raw_data["latitudes"].max())
-    lon_range = (raw_data["longitudes"].min(), raw_data["longitudes"].max())
-    print(f"  Latitude range:     {lat_range[0]:.4f}° to {lat_range[1]:.4f}°N")
-    print(f"  Longitude range:    {lon_range[0]:.4f}° to {lon_range[1]:.4f}°W")
-
-    # --- Filtering ---
-    print("\n--- Site Filtering ---")
-    n_raw = processed["n_raw_sites"]
-    n_filt = processed["n_sites"]
-    retention = n_filt / n_raw * 100 if n_raw > 0 else 0
-    print(f"  Sites before filter: {n_raw}")
-    print(f"  Sites after filter:  {n_filt}")
-    print(f"  Retention rate:      {retention:.1f}%")
-    print(f"  Filter criteria:")
-    print(f"    Depth:             {MIN_DEPTH_M}–{MAX_DEPTH_M} m")
-    print(f"    Shore distance:    {MIN_DIST_SHORE_KM}–{MAX_DIST_SHORE_KM} km")
-    print(f"    Min mean speed:    {MIN_MEAN_SPEED_MS} m/s")
-    print(f"    Min capacity fac:  {MIN_CAPACITY_FACTOR}")
-
-    if n_filt == 0:
-        print("\n  WARNING: No sites passed filtering. Check filter criteria.")
-        return
-
-    # --- Site Locations ---
-    print("\n--- Site Locations (filtered) ---")
-    lats = processed["latitudes"]
-    lons = processed["longitudes"]
-    print(f"  Latitude range:      {np.min(lats):.4f}° to {np.max(lats):.4f}°N")
-    print(f"  Longitude range:     {np.min(lons):.4f}° to {np.max(lons):.4f}°W")
-    depths = processed["depths_m"]
-    dist = processed["dist_to_shore_km"]
-    if len(depths) > 0 and not np.all(np.isnan(depths)):
-        valid = depths[~np.isnan(depths)]
-        print(f"  Depth range:         {np.min(valid):.1f} to {np.max(valid):.1f} m")
-        print(f"  Depth median:        {np.median(valid):.1f} m")
-    if len(dist) > 0 and not np.all(np.isnan(dist)):
-        valid = dist[~np.isnan(dist)]
-        print(f"  Shore dist range:    {np.min(valid):.1f} to {np.max(valid):.1f} km")
-        print(f"  Shore dist median:   {np.median(valid):.1f} km")
-
-    # --- Current Speeds ---
-    print("\n--- Current Speeds (filtered sites) ---")
-    mean_speeds = processed["mean_speeds_ms"]
-    print(f"  Mean of site means:  {np.mean(mean_speeds):.4f} m/s")
-    print(f"  Min site mean:       {np.min(mean_speeds):.4f} m/s")
-    print(f"  Max site mean:       {np.max(mean_speeds):.4f} m/s")
-    print(f"  Std Dev:             {np.std(mean_speeds):.4f} m/s")
-
-    # --- Capacity Factors ---
-    print("\n--- Capacity Factors ---")
-    cfs = processed["capacity_factors"]
-    print(f"  Mean:      {np.mean(cfs):.4f}  ({np.mean(cfs):.1%})")
-    print(f"  Median:    {np.median(cfs):.4f}  ({np.median(cfs):.1%})")
-    print(f"  Std Dev:   {np.std(cfs):.4f}")
-    print(f"  Min:       {np.min(cfs):.4f}  ({np.min(cfs):.1%})")
-    print(f"  Max:       {np.max(cfs):.4f}  ({np.max(cfs):.1%})")
-    print(f"  25th pct:  {np.percentile(cfs, 25):.4f}  ({np.percentile(cfs, 25):.1%})")
-    print(f"  75th pct:  {np.percentile(cfs, 75):.4f}  ({np.percentile(cfs, 75):.1%})")
-    print(f"  90th pct:  {np.percentile(cfs, 90):.4f}  ({np.percentile(cfs, 90):.1%})")
-
-    # --- Per-Turbine Power Output ---
-    print("\n--- Per-Turbine Power Output ---")
-    power_ts = processed["power_timeseries"]  # (n_sites, n_timesteps) in MW
-    rated_mw = turbine["rated_power_mw"]
-    mean_power_per_site = np.mean(power_ts, axis=1)
-    print(
-        f"  Mean power per site:   {np.mean(mean_power_per_site):.4f} MW  ({np.mean(mean_power_per_site) * 1000:.1f} kW)"
-    )
-    print(
-        f"  Max mean power:        {np.max(mean_power_per_site):.4f} MW  ({np.max(mean_power_per_site) * 1000:.1f} kW)"
-    )
-    # Fraction of time at zero power (below cut-in or above cut-out)
-    frac_zero = np.mean(power_ts == 0)
-    # Fraction of time at rated power
-    frac_rated = np.mean(np.isclose(power_ts, rated_mw, rtol=1e-6))
-    print(f"  Time at zero power:    {frac_zero:.1%}")
-    print(f"  Time at rated power:   {frac_rated:.1%}")
-    print(f"  Time generating:       {1 - frac_zero:.1%}")
-
-    # --- Per-Turbine Annual Energy ---
-    print("\n--- Per-Turbine Annual Energy ---")
-    # E = CF × P_rated × 8760 hours (single turbine, no wake loss)
-    energy_mwh = cfs * rated_mw * HOURS_PER_YEAR
-    print(
-        f"  Mean:      {np.mean(energy_mwh):.0f} MWh/year  ({np.mean(energy_mwh) / 1000:.2f} GWh)"
-    )
-    print(f"  Median:    {np.median(energy_mwh):.0f} MWh/year")
-    print(f"  Min:       {np.min(energy_mwh):.0f} MWh/year")
-    print(f"  Max:       {np.max(energy_mwh):.0f} MWh/year")
-    print(f"  Theoretical max:  {rated_mw * HOURS_PER_YEAR:.0f} MWh/year  (CF=100%)")
-
-    # --- Turbine Specification ---
-    print("\n--- Turbine Specification ---")
-    print(f"  Name:              {turbine['name']}")
-    print(
-        f"  Rated power:       {turbine['rated_power_mw']} MW  ({turbine['rated_power_mw'] * 1000:.0f} kW)"
-    )
-    print(f"  Cut-in speed:      {turbine['cut_in_speed_ms']} m/s")
-    print(f"  Rated speed:       {turbine['rated_speed_ms']} m/s")
-    print(f"  Cut-out speed:     {turbine['cut_out_speed_ms']} m/s")
-    print(f"  Rotor diameter:    {turbine['rotor_diameter_m']:.1f} m")
-
-    # --- Tidal vs Total Comparison (when tidal data is available) ---
-    has_tidal = "tidal_capacity_factors" in processed
-    if has_tidal:
-        t_cfs = processed["tidal_capacity_factors"]
-        valid_mask = ~np.isnan(t_cfs)
-
-        if np.any(valid_mask):
-            rated_mw = turbine["rated_power_mw"]
-            t_cfs_valid = t_cfs[valid_mask]
-            t_speeds = processed["tidal_mean_speeds_ms"][valid_mask]
-            t_power = processed["tidal_power_timeseries"][valid_mask]
-
-            print("\n--- Tidal vs Total Comparison ---")
-            print(f"  Current mode:        {CURRENT_MODE}")
-            print(f"  Sites with tidal data: {np.sum(valid_mask)}/{n_filt}")
-
-            print(f"\n  Mean capacity factor:")
-            print(f"    Total:  {np.mean(cfs):.4f}  ({np.mean(cfs):.1%})")
-            print(
-                f"    Tidal:  {np.mean(t_cfs_valid):.4f}  ({np.mean(t_cfs_valid):.1%})"
-            )
-            if np.mean(cfs) > 0:
-                cf_reduction = 1 - np.mean(t_cfs_valid) / np.mean(cfs)
-                print(f"    Change: {-cf_reduction:+.1%}")
-
-            print(f"\n  Max capacity factor:")
-            print(f"    Total:  {np.max(cfs):.4f}  ({np.max(cfs):.1%})")
-            print(f"    Tidal:  {np.max(t_cfs_valid):.4f}  ({np.max(t_cfs_valid):.1%})")
-
-            print(f"\n  Mean current speed:")
-            print(f"    Total:  {np.mean(mean_speeds):.4f} m/s")
-            print(f"    Tidal:  {np.mean(t_speeds):.4f} m/s")
-
-            print(f"\n  Per-turbine annual energy (mean):")
-            total_energy = np.mean(cfs) * rated_mw * HOURS_PER_YEAR
-            tidal_energy = np.mean(t_cfs_valid) * rated_mw * HOURS_PER_YEAR
-            print(f"    Total:  {total_energy:.0f} MWh/year")
-            print(f"    Tidal:  {tidal_energy:.0f} MWh/year")
-
-            t_frac_zero = np.mean(t_power == 0)
-            print(f"\n  Time at zero power:")
-            print(f"    Total:  {frac_zero:.1%}")
-            print(f"    Tidal:  {t_frac_zero:.1%}")
-
-    print("\n" + "=" * 70)
 
 
 # =============================================================================
@@ -545,11 +371,6 @@ def main():
     if processed["n_sites"] == 0:
         print("\n  No sites passed filtering. Check filter criteria or data coverage.")
         sys.exit(1)
-
-    # -------------------------------------------------------------------------
-    # Print Summary
-    # -------------------------------------------------------------------------
-    print_summary(raw_data, flat, processed, turbine)
 
     # -------------------------------------------------------------------------
     # Step 3: Save Results

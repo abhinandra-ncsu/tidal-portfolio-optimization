@@ -84,7 +84,7 @@ def save_optimization_json(results, site_data, turbine, input_npz, output_path, 
                         "latitude": float(site_data["latitudes"][idx]),
                         "longitude": float(site_data["longitudes"][idx]),
                         "capacity_factor": float(site_data["capacity_factors"][idx]),
-                        "dist_to_shore_km": float(site_data["dist_to_shore"][idx]),
+                        "dist_to_shore_km": float(site_data["dist_to_shore_km"][idx]),
                         "depth_m": float(site_data["depths_m"][idx]),
                     }
                     for idx in selected

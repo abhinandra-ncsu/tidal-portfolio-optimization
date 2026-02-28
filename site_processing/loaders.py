@@ -404,7 +404,7 @@ def load_site_results(npz_path, require_tidal=False):
     Returns:
         (site_data, config) tuple where:
         - site_data: dict with latitudes, longitudes, capacity_factors,
-          dist_to_shore, dist_to_shore_km, power_timeseries, depths_m,
+          dist_to_shore_km, power_timeseries, depths_m,
           mean_speeds_ms, n_sites, n_raw_sites. When tidal data is present,
           also includes tidal_capacity_factors and tidal_power_timeseries.
         - config: dict with turbine_name, rated_power_mw, cut_in_speed_ms,
@@ -427,7 +427,6 @@ def load_site_results(npz_path, require_tidal=False):
         "latitudes": data["latitudes"],
         "longitudes": data["longitudes"],
         "capacity_factors": data["capacity_factors"],
-        "dist_to_shore": data["dist_to_shore_km"],
         "dist_to_shore_km": data["dist_to_shore_km"],
         "power_timeseries": data["power_timeseries"],
         "depths_m": data["depths_m"],
@@ -477,7 +476,7 @@ def flatten_grid_data(raw_data):
             - longitudes: (n_sites,) flat longitudes
             - current_speeds: (n_sites, n_timesteps) flat current speeds
             - depths: (n_sites,) flat depths in meters
-            - dist_to_shore: (n_sites,) flat shore distances in km
+            - dist_to_shore_km: (n_sites,) flat shore distances in km
             - n_sites: Total number of sites
             - n_timesteps: Number of timesteps
     """
@@ -501,7 +500,7 @@ def flatten_grid_data(raw_data):
         'longitudes': flat_lons,
         'current_speeds': flat_speeds,
         'depths': raw_data['depths_m'].ravel(),
-        'dist_to_shore': raw_data['dist_to_shore_km'].ravel(),
+        'dist_to_shore_km': raw_data['dist_to_shore_km'].ravel(),
         'n_sites': n_sites,
         'n_timesteps': n_time,
     }

@@ -25,7 +25,7 @@ Example:
         longitudes=flat['longitudes'],
         current_speeds=flat['current_speeds'],
         depths=flat['depths'],
-        dist_to_shore=flat['dist_to_shore'],
+        dist_to_shore=flat['dist_to_shore_km'],
         cut_in=0.5,
         rated=2.0,
         cut_out=3.0,
@@ -157,27 +157,4 @@ def process_sites(latitudes, longitudes, current_speeds, depths, dist_to_shore,
         'n_sites': n_filtered,
         'n_raw_sites': n_sites_raw,
     }
-
-
-def save_sites(processed_data, path, turbine_name, rated_power):
-    """
-    Save processed site data to .npz file.
-
-    Args:
-        processed_data: Dict from process_sites()
-        path: Output file path
-        turbine_name: Name of turbine
-        rated_power: Turbine rated power (MW)
-    """
-    np.savez(
-        path,
-        latitudes=processed_data['latitudes'],
-        longitudes=processed_data['longitudes'],
-        capacity_factors=processed_data['capacity_factors'],
-        dist_to_shore_km=processed_data['dist_to_shore_km'],
-        power_timeseries=processed_data['power_timeseries'],
-        turbine_name=turbine_name,
-        turbine_power_mw=rated_power,
-    )
-
 

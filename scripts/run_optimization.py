@@ -202,7 +202,7 @@ def main():
             lat = site_data["latitudes"][site_idx]
             lon = site_data["longitudes"][site_idx]
             cf = site_data["capacity_factors"][site_idx]
-            dist = site_data["dist_to_shore"][site_idx]
+            dist = site_data["dist_to_shore_km"][site_idx]
             print(
                 f"    Array {i + 1}: ({lat:.4f}, {lon:.4f}) | CF={cf:.1%} | Shore={dist:.1f}km"
             )

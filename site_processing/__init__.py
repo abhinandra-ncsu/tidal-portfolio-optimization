@@ -20,7 +20,7 @@ Example:
         longitudes=flat['longitudes'],
         current_speeds=flat['current_speeds'],
         depths=flat['depths'],
-        dist_to_shore=flat['dist_to_shore'],
+        dist_to_shore=flat['dist_to_shore_km'],
     )
 """
 
@@ -35,7 +35,6 @@ from .loaders import (
 
 from .process_sites import (
     process_sites,
-    save_sites,
 )
 
 from .utide_bridge import (
@@ -57,7 +56,6 @@ __all__ = [
     "flatten_grid_data",
     "load_site_results",
     "process_sites",
-    "save_sites",
     "prepare_utide_input",
     "process_utide_output",
     "load_turbine",
