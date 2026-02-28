@@ -33,7 +33,8 @@ Example:
     # Step 3: Load results back into processed data
     processed = process_utide_output(processed, utide_output_dir="data/utide_output",
                                      cut_in=0.3, rated=1.2, cut_out=3.0, rated_power=1.1)
-    # processed now has 'tidal_current_speeds', 'tidal_power_timeseries', 'tidal_capacity_factors'
+    # processed now has tidal_current_speeds, tidal_power_timeseries,
+    # tidal_capacity_factors, tidal_mean_speeds_ms
 """
 
 from pathlib import Path

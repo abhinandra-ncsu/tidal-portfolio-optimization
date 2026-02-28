@@ -6,13 +6,12 @@ Functions for loading raw oceanographic data from HYCOM, GEBCO, and shoreline
 shapefiles for tidal turbine site assessment.
 
 Main functions:
-    - load_hycom: Load ocean current velocity from HYCOM NetCDF files
-    - load_gebco: Load bathymetry from GEBCO NetCDF files
-    - load_shoreline: Calculate distance to shore from shapefiles
-    - load_all: Orchestrate all loaders into combined dataset
+    - load_all: Load and combine all data sources (HYCOM + GEBCO + shoreline)
+    - flatten_grid_data: Convert 2D grid data to 1D arrays for process_sites
+    - load_site_results: Load pre-computed pipeline results from .npz
 
 Example:
-    from tidal_portfolio.site_processing import load_all, process_sites
+    from tidal_portfolio.site_processing import load_all, flatten_grid_data
 
     raw = load_all(
         hycom_pattern="hycom/*.nc",
@@ -21,7 +20,7 @@ Example:
         gebco_path="gebco.nc",
         shoreline_path="coast.shp",
     )
-    sites = process_sites(raw['latitudes'], raw['current_speeds'], ...)
+    flat = flatten_grid_data(raw)
 """
 
 from pathlib import Path
