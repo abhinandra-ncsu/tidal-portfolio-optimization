@@ -110,7 +110,8 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
             - lcoe_target, feasible
             - selected_sites, collection_point, variance, lcoe
             - total_cost, total_energy, cost_breakdown
-            - transmission_mode
+            - transmission_mode, dist_to_shore_km
+            - n_feasible, n_tried
             - solve_time, solver_used
     """
     best_result = None
@@ -198,6 +199,9 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
             'total_energy': best_result['total_energy'],
             'cost_breakdown': best_result['cost_breakdown'],
             'transmission_mode': trans['mode'],
+            'dist_to_shore_km': shore_dist,
+            'n_feasible': n_feasible,
+            'n_tried': n_tried,
             'solve_time': best_result['solve_time'],
             'solver_used': best_result['solver_used'],
         }
@@ -208,6 +212,8 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
         return {
             'lcoe_target': lcoe_target,
             'feasible': False,
+            'n_feasible': 0,
+            'n_tried': n_tried,
         }
 
 
