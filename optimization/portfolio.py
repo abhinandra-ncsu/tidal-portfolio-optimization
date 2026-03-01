@@ -219,17 +219,22 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
 
 
 def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
-                                wake_loss_factor, turbines_per_array,
-                                rated_power_mw, cluster_radius_km,
-                                fcr, rows, cols, power_factor,
-                                row_spacing_km, col_spacing_km,
-                                intra_array_voltage_v, inter_array_voltage_v,
-                                opex_rate,
-                                current_mode="total", verbose=True):
+                                rated_power_mw, cluster_radius_km=20.0,
+                                current_mode="total",
+                                wake_loss_factor=None,
+                                turbines_per_array=None,
+                                fcr=None, rows=None, cols=None,
+                                power_factor=None,
+                                row_spacing_km=None, col_spacing_km=None,
+                                intra_array_voltage_v=None,
+                                inter_array_voltage_v=None,
+                                opex_rate=None,
+                                verbose=True):
     """
     Run portfolio optimization.
 
-    Main entry point for portfolio optimization.
+    Main entry point for portfolio optimization. Engineering constants default
+    to values from ``config.py`` and can be overridden per call.
 
     Args:
         site_data: Dict from load_site_data_from_npz() with:
@@ -243,22 +248,22 @@ def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
 
         num_arrays: Number of arrays to deploy
         lcoe_targets: List of LCOE targets to test ($/MWh)
-
-        wake_loss_factor: Wake loss multiplier (e.g., 0.88 = 12% loss)
-        turbines_per_array: Turbines per array
         rated_power_mw: Rated power per turbine (MW)
-        cluster_radius_km: Max distance from collection point (km)
-        fcr: Fixed charge rate
-        rows: Array rows
-        cols: Array columns
-        power_factor: Power factor
-        row_spacing_km: Row spacing in km
-        col_spacing_km: Column spacing in km
-        intra_array_voltage_v: Intra-array cable voltage (V)
-        inter_array_voltage_v: Inter-array cable voltage (V)
-        opex_rate: OPEX as fraction of CAPEX (for transmission)
+        cluster_radius_km: Max distance from collection point (km). Default 20.
         current_mode: "total" (default) or "tidal" -- selects which timeseries
             to use for energy/covariance calculations
+
+        wake_loss_factor: Wake loss multiplier. Default from config.
+        turbines_per_array: Turbines per array. Default from config (rows * cols).
+        fcr: Fixed charge rate. Default from config.
+        rows: Array rows. Default from config.
+        cols: Array columns. Default from config.
+        power_factor: Power factor. Default from config.
+        row_spacing_km: Row spacing in km. Default from config.
+        col_spacing_km: Column spacing in km. Default from config.
+        intra_array_voltage_v: Intra-array cable voltage (V). Default from config.
+        inter_array_voltage_v: Inter-array cable voltage (V). Default from config.
+        opex_rate: OPEX as fraction of CAPEX. Default from config.
 
         verbose: Print progress
 
@@ -269,6 +274,25 @@ def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
             - wake_loss_factor, cluster_radius_km, fcr, current_mode
             - site_data: Original site data
     """
+    # Resolve defaults from config
+    from ..config import (
+        WAKE_LOSS_FACTOR, TURBINES_PER_ARRAY, FCR,
+        ARRAY_ROWS, ARRAY_COLS, POWER_FACTOR,
+        ROW_SPACING_M, COL_SPACING_M,
+        INTRA_ARRAY_VOLTAGE_V, INTER_ARRAY_VOLTAGE_V, OPEX_RATE,
+    )
+    if wake_loss_factor is None: wake_loss_factor = WAKE_LOSS_FACTOR
+    if turbines_per_array is None: turbines_per_array = TURBINES_PER_ARRAY
+    if fcr is None: fcr = FCR
+    if rows is None: rows = ARRAY_ROWS
+    if cols is None: cols = ARRAY_COLS
+    if power_factor is None: power_factor = POWER_FACTOR
+    if row_spacing_km is None: row_spacing_km = ROW_SPACING_M / 1000.0
+    if col_spacing_km is None: col_spacing_km = COL_SPACING_M / 1000.0
+    if intra_array_voltage_v is None: intra_array_voltage_v = INTRA_ARRAY_VOLTAGE_V
+    if inter_array_voltage_v is None: inter_array_voltage_v = INTER_ARRAY_VOLTAGE_V
+    if opex_rate is None: opex_rate = OPEX_RATE
+
     # Sort LCOE targets
     lcoe_targets = sorted(lcoe_targets)
 

@@ -26,10 +26,7 @@ from tidal_portfolio import (
     save_optimization_results,
 )
 from tidal_portfolio.config import (
-    TURBINES_PER_ARRAY, FCR, WAKE_LOSS_FACTOR,
-    ARRAY_ROWS, ARRAY_COLS, ROW_SPACING_M, COL_SPACING_M,
-    POWER_FACTOR, INTRA_ARRAY_VOLTAGE_V, INTER_ARRAY_VOLTAGE_V,
-    OPEX_RATE,
+    TURBINES_PER_ARRAY, WAKE_LOSS_FACTOR, FCR,
     get_region_paths,
 )
 from tidal_portfolio.visualization import plot_all
@@ -131,19 +128,8 @@ def main():
         site_data=site_data,
         num_arrays=NUM_ARRAYS,
         lcoe_targets=LCOE_TARGETS,
-        wake_loss_factor=WAKE_LOSS_FACTOR,
-        turbines_per_array=TURBINES_PER_ARRAY,
         rated_power_mw=turbine["rated_power_mw"],
         cluster_radius_km=CLUSTER_RADIUS_KM,
-        fcr=FCR,
-        rows=ARRAY_ROWS,
-        cols=ARRAY_COLS,
-        power_factor=POWER_FACTOR,
-        row_spacing_km=ROW_SPACING_M / 1000.0,
-        col_spacing_km=COL_SPACING_M / 1000.0,
-        intra_array_voltage_v=INTRA_ARRAY_VOLTAGE_V,
-        inter_array_voltage_v=INTER_ARRAY_VOLTAGE_V,
-        opex_rate=OPEX_RATE,
         current_mode=CURRENT_MODE,
         verbose=True,
     )

@@ -12,18 +12,16 @@ Modules:
 
 Example:
     from tidal_portfolio import load_turbine, run_portfolio_optimization, get_best_result
-    from tidal_portfolio.config import TURBINES_PER_ARRAY, WAKE_LOSS_FACTOR, FCR
 
     # Load turbine spec
     turbine = load_turbine("RM1")
 
     # Run optimization (site_data from load_all → flatten → process_sites)
+    # Engineering constants default from config.py; only pass what varies per run.
     results = run_portfolio_optimization(
         site_data=site_data,
         num_arrays=3,
         lcoe_targets=[700, 750, 800],
-        wake_loss_factor=WAKE_LOSS_FACTOR,
-        turbines_per_array=TURBINES_PER_ARRAY,
         rated_power_mw=turbine["rated_power_mw"],
     )
 
