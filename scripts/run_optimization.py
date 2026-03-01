@@ -158,8 +158,13 @@ def main():
             print(f"    Total Energy:       {result['total_energy']:,.0f} MWh/year")
             print(f"    Total Cost:         ${result['total_cost']:,.0f}/year")
             print(f"    Transmission Mode:  {result['transmission_mode']}")
-            print(f"    Collection Point:   Site {result['collection_point']}")
-            print(f"    Selected Sites:     {list(result['selected_sites'])}")
+            cp = result['collection_point']
+            cp_lat = site_data["latitudes"][cp]
+            cp_lon = site_data["longitudes"][cp]
+            print(f"    Collection Point:   ({cp_lat:.4f}, {cp_lon:.4f})")
+            print(f"    Selected Sites:"  )
+            for si in result['selected_sites']:
+                print(f"      ({site_data['latitudes'][si]:.4f}, {site_data['longitudes'][si]:.4f})")
 
             # Cost breakdown
             print(f"    Cost Breakdown:")

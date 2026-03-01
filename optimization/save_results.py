@@ -64,6 +64,7 @@ def save_optimization_json(results, site_data, turbine, input_npz, output_path, 
         }
         if r["feasible"]:
             selected = r["selected_sites"]
+            cp = r["collection_point"]
             entry.update({
                 "lcoe": r["lcoe"],
                 "variance": r["variance"],
@@ -71,13 +72,12 @@ def save_optimization_json(results, site_data, turbine, input_npz, output_path, 
                 "total_cost": r["total_cost"],
                 "cost_breakdown": r["cost_breakdown"],
                 "transmission_mode": r["transmission_mode"],
-                "collection_point": r["collection_point"],
-                "selected_sites": selected,
-                "solve_time": r["solve_time"],
-                "solver_used": r.get("solver_used", "gurobi"),
-                "site_details": [
+                "collection_point": {
+                    "latitude": float(site_data["latitudes"][cp]),
+                    "longitude": float(site_data["longitudes"][cp]),
+                },
+                "selected_sites": [
                     {
-                        "site_index": int(idx),
                         "latitude": float(site_data["latitudes"][idx]),
                         "longitude": float(site_data["longitudes"][idx]),
                         "capacity_factor": float(site_data["capacity_factors"][idx]),
@@ -86,6 +86,8 @@ def save_optimization_json(results, site_data, turbine, input_npz, output_path, 
                     }
                     for idx in selected
                 ],
+                "solve_time": r["solve_time"],
+                "solver_used": r.get("solver_used", "gurobi"),
             })
         target_results.append(entry)
 
@@ -94,13 +96,25 @@ def save_optimization_json(results, site_data, turbine, input_npz, output_path, 
     best_entry = None
     if feasible:
         best = min(feasible, key=lambda r: r["lcoe"])
+        best_selected = best["selected_sites"]
+        best_cp = best["collection_point"]
         best_entry = {
             "lcoe_target": best["lcoe_target"],
             "lcoe": best["lcoe"],
             "variance": best["variance"],
             "total_energy": best["total_energy"],
             "total_cost": best["total_cost"],
-            "selected_sites": best["selected_sites"],
+            "collection_point": {
+                "latitude": float(site_data["latitudes"][best_cp]),
+                "longitude": float(site_data["longitudes"][best_cp]),
+            },
+            "selected_sites": [
+                {
+                    "latitude": float(site_data["latitudes"][idx]),
+                    "longitude": float(site_data["longitudes"][idx]),
+                }
+                for idx in best_selected
+            ],
         }
 
     # Site selection frequency
@@ -143,7 +157,7 @@ def save_optimization_json(results, site_data, turbine, input_npz, output_path, 
     print(f"      Saved JSON: {output_path}")
 
 
-def save_optimization_csv(results, output_path):
+def save_optimization_csv(results, site_data, output_path):
     """
     Save a flat summary table to CSV (one row per LCOE target).
 
@@ -151,6 +165,8 @@ def save_optimization_csv(results, output_path):
     ----------
     results : dict
         Output from ``run_portfolio_optimization()``.
+    site_data : dict
+        Site data dict (latitudes, longitudes, etc.).
     output_path : str or Path
         Destination CSV file path.
     """
@@ -168,8 +184,9 @@ def save_optimization_csv(results, output_path):
         "cost_inter_array",
         "cost_transmission",
         "transmission_mode",
-        "collection_point",
-        "selected_sites",
+        "collection_point_lat",
+        "collection_point_lon",
+        "selected_site_coords",
         "solve_time",
     ]
 
@@ -181,8 +198,11 @@ def save_optimization_csv(results, output_path):
             row = {"lcoe_target": r["lcoe_target"], "feasible": r["feasible"]}
             if r["feasible"]:
                 selected = r["selected_sites"]
-                if isinstance(selected, np.ndarray):
-                    selected = selected.tolist()
+                cp = r["collection_point"]
+                coords = [
+                    f"({site_data['latitudes'][idx]:.4f}, {site_data['longitudes'][idx]:.4f})"
+                    for idx in (selected.tolist() if isinstance(selected, np.ndarray) else selected)
+                ]
                 row.update({
                     "lcoe": f"{r['lcoe']:.2f}",
                     "variance": f"{r['variance']:.6f}",
@@ -192,8 +212,9 @@ def save_optimization_csv(results, output_path):
                     "cost_inter_array": f"{r['cost_breakdown']['inter_array']:.2f}",
                     "cost_transmission": f"{r['cost_breakdown']['transmission']:.2f}",
                     "transmission_mode": r["transmission_mode"],
-                    "collection_point": r["collection_point"],
-                    "selected_sites": selected,
+                    "collection_point_lat": f"{site_data['latitudes'][cp]:.4f}",
+                    "collection_point_lon": f"{site_data['longitudes'][cp]:.4f}",
+                    "selected_site_coords": "; ".join(coords),
                     "solve_time": f"{r['solve_time']:.3f}",
                 })
             writer.writerow(row)
@@ -237,4 +258,4 @@ def save_optimization_results(
     csv_path = output_dir / f"{prefix}_summary.csv"
 
     save_optimization_json(results, site_data, turbine, input_npz, json_path, region=region)
-    save_optimization_csv(results, csv_path)
+    save_optimization_csv(results, site_data, csv_path)
