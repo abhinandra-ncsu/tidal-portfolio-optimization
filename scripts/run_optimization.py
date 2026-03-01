@@ -184,10 +184,7 @@ def main():
         print(f"  Portfolio Variance: {best['variance']:.2f} MW^2")
         print(f"  Total Energy:      {best['total_energy']:,.0f} MWh/year")
         print(f"  Total Cost:        ${best['total_cost']:,.0f}/year")
-        print(f"  Selected Sites:    {list(best['selected_sites'])}")
-
-        # Get coordinates of selected sites
-        print(f"\n  Site Coordinates:")
+        print(f"\n  Selected Sites:")
         for i, site_idx in enumerate(best['selected_sites']):
             lat = site_data["latitudes"][site_idx]
             lon = site_data["longitudes"][site_idx]
