@@ -65,14 +65,11 @@ def save_optimization_json(results, site_data, turbine, input_npz, output_path, 
         if r["feasible"]:
             selected = r["selected_sites"]
             entry.update({
-                "achieved_lcoe": r["achieved_lcoe"],
+                "lcoe": r["lcoe"],
                 "variance": r["variance"],
-                "energy_gross": r["energy_gross"],
-                "energy_net": r["energy_net"],
-                "cost_total": r["cost_total"],
-                "cost_fixed": r["cost_fixed"],
-                "cost_inter_array": r["cost_inter_array"],
-                "cost_transmission": r["cost_transmission"],
+                "total_energy": r["total_energy"],
+                "total_cost": r["total_cost"],
+                "cost_breakdown": r["cost_breakdown"],
                 "transmission_mode": r["transmission_mode"],
                 "collection_point": r["collection_point"],
                 "selected_sites": selected,
@@ -96,13 +93,13 @@ def save_optimization_json(results, site_data, turbine, input_npz, output_path, 
     feasible = [r for r in results["results"] if r["feasible"]]
     best_entry = None
     if feasible:
-        best = min(feasible, key=lambda r: r["achieved_lcoe"])
+        best = min(feasible, key=lambda r: r["lcoe"])
         best_entry = {
             "lcoe_target": best["lcoe_target"],
-            "achieved_lcoe": best["achieved_lcoe"],
+            "lcoe": best["lcoe"],
             "variance": best["variance"],
-            "energy_net": best["energy_net"],
-            "cost_total": best["cost_total"],
+            "total_energy": best["total_energy"],
+            "total_cost": best["total_cost"],
             "selected_sites": best["selected_sites"],
         }
 
@@ -163,11 +160,10 @@ def save_optimization_csv(results, output_path):
     fieldnames = [
         "lcoe_target",
         "feasible",
-        "achieved_lcoe",
+        "lcoe",
         "variance",
-        "energy_gross",
-        "energy_net",
-        "cost_total",
+        "total_energy",
+        "total_cost",
         "cost_fixed",
         "cost_inter_array",
         "cost_transmission",
@@ -188,14 +184,13 @@ def save_optimization_csv(results, output_path):
                 if isinstance(selected, np.ndarray):
                     selected = selected.tolist()
                 row.update({
-                    "achieved_lcoe": f"{r['achieved_lcoe']:.2f}",
+                    "lcoe": f"{r['lcoe']:.2f}",
                     "variance": f"{r['variance']:.6f}",
-                    "energy_gross": f"{r['energy_gross']:.2f}",
-                    "energy_net": f"{r['energy_net']:.2f}",
-                    "cost_total": f"{r['cost_total']:.2f}",
-                    "cost_fixed": f"{r['cost_fixed']:.2f}",
-                    "cost_inter_array": f"{r['cost_inter_array']:.2f}",
-                    "cost_transmission": f"{r['cost_transmission']:.2f}",
+                    "total_energy": f"{r['total_energy']:.2f}",
+                    "total_cost": f"{r['total_cost']:.2f}",
+                    "cost_fixed": f"{r['cost_breakdown']['fixed']:.2f}",
+                    "cost_inter_array": f"{r['cost_breakdown']['inter_array']:.2f}",
+                    "cost_transmission": f"{r['cost_breakdown']['transmission']:.2f}",
                     "transmission_mode": r["transmission_mode"],
                     "collection_point": r["collection_point"],
                     "selected_sites": selected,

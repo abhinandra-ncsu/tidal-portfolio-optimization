@@ -168,19 +168,19 @@ def main():
     for result in results["results"]:
         if result['feasible']:
             print(f"\n  LCOE Target: ${result['lcoe_target']:.0f}/MWh  [FEASIBLE]")
-            print(f"    Achieved LCOE:      ${result['achieved_lcoe']:.0f}/MWh")
+            print(f"    Achieved LCOE:      ${result['lcoe']:.0f}/MWh")
             print(f"    Portfolio Variance: {result['variance']:.2f} MW^2")
-            print(f"    Net Energy:         {result['energy_net']:,.0f} MWh/year")
-            print(f"    Total Cost:         ${result['cost_total']:,.0f}/year")
+            print(f"    Total Energy:       {result['total_energy']:,.0f} MWh/year")
+            print(f"    Total Cost:         ${result['total_cost']:,.0f}/year")
             print(f"    Transmission Mode:  {result['transmission_mode']}")
             print(f"    Collection Point:   Site {result['collection_point']}")
             print(f"    Selected Sites:     {list(result['selected_sites'])}")
 
             # Cost breakdown
             print(f"    Cost Breakdown:")
-            print(f"      - Fixed:          ${result['cost_fixed']:,.0f}/year")
-            print(f"      - Inter-array:    ${result['cost_inter_array']:,.0f}/year")
-            print(f"      - Transmission:   ${result['cost_transmission']:,.0f}/year")
+            print(f"      - Fixed:          ${result['cost_breakdown']['fixed']:,.0f}/year")
+            print(f"      - Inter-array:    ${result['cost_breakdown']['inter_array']:,.0f}/year")
+            print(f"      - Transmission:   ${result['cost_breakdown']['transmission']:,.0f}/year")
         else:
             print(f"\n  LCOE Target: ${result['lcoe_target']:.0f}/MWh  [INFEASIBLE]")
 
@@ -190,10 +190,10 @@ def main():
         print("\n" + "=" * 70)
         print("OPTIMAL SOLUTION (Lowest Feasible LCOE)")
         print("=" * 70)
-        print(f"  LCOE:              ${best['achieved_lcoe']:.0f}/MWh")
+        print(f"  LCOE:              ${best['lcoe']:.0f}/MWh")
         print(f"  Portfolio Variance: {best['variance']:.2f} MW^2")
-        print(f"  Net Energy:        {best['energy_net']:,.0f} MWh/year")
-        print(f"  Total Cost:        ${best['cost_total']:,.0f}/year")
+        print(f"  Total Energy:      {best['total_energy']:,.0f} MWh/year")
+        print(f"  Total Cost:        ${best['total_cost']:,.0f}/year")
         print(f"  Selected Sites:    {list(best['selected_sites'])}")
 
         # Get coordinates of selected sites

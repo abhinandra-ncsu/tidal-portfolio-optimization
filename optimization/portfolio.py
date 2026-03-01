@@ -108,10 +108,9 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
     Returns:
         dict with optimization result:
             - lcoe_target, feasible
-            - selected_sites, collection_point, variance, achieved_lcoe
-            - cost_fixed, cost_inter_array, cost_transmission, cost_total
+            - selected_sites, collection_point, variance, lcoe
+            - total_cost, total_energy, cost_breakdown
             - transmission_mode
-            - energy_gross, energy_net
             - solve_time, solver_used
     """
     best_result = None
@@ -125,10 +124,6 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
     for cp_idx in viable_cps:
         # Get candidates within cluster radius
         candidates = np.where(distance_matrix[cp_idx] <= cluster_radius_km)[0]
-
-        if len(candidates) < num_arrays:
-            continue
-
         n_tried += 1
 
         # Get energy and covariance for candidates
@@ -198,14 +193,11 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
             'selected_sites': best_selected,
             'collection_point': best_cp,
             'variance': best_result['variance'],
-            'achieved_lcoe': best_result['lcoe'],
-            'cost_fixed': best_result['cost_breakdown']['fixed'],
-            'cost_inter_array': best_result['cost_breakdown']['inter_array'],
-            'cost_transmission': best_result['cost_breakdown']['transmission'],
-            'cost_total': best_result['total_cost'],
+            'lcoe': best_result['lcoe'],
+            'total_cost': best_result['total_cost'],
+            'total_energy': best_result['total_energy'],
+            'cost_breakdown': best_result['cost_breakdown'],
             'transmission_mode': trans['mode'],
-            'energy_gross': best_result['total_energy'],
-            'energy_net': best_result['total_energy'],
             'solve_time': best_result['solve_time'],
             'solver_used': best_result['solver_used'],
         }
@@ -397,7 +389,7 @@ def get_best_result(results):
     feasible = [r for r in results if r['feasible']]
     if not feasible:
         return None
-    return min(feasible, key=lambda r: r['achieved_lcoe'])
+    return min(feasible, key=lambda r: r['lcoe'])
 
 
 def get_feasible_count(results):

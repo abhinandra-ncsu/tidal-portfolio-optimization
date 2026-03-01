@@ -29,7 +29,7 @@ Example:
 
     # Get best result
     best = get_best_result(results['results'])
-    print(f"LCOE: ${best['achieved_lcoe']:.0f}/MWh")
+    print(f"LCOE: ${best['lcoe']:.0f}/MWh")
     print(f"Variance: {best['variance']:.2f} MW²")
 """
 

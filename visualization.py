@@ -56,7 +56,7 @@ def plot_lcoe_vs_variance(results: List[Dict], save_path: Optional[str] = None):
         return
 
     lcoe_targets = [r['lcoe_target'] for r in feasible]
-    achieved_lcoe = [r['achieved_lcoe'] for r in feasible]
+    achieved_lcoe = [r['lcoe'] for r in feasible]
     variances = [r['variance'] for r in feasible]
 
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -83,7 +83,7 @@ def plot_lcoe_vs_variance(results: List[Dict], save_path: Optional[str] = None):
     # Annotations
     for r in feasible:
         ax.annotate(f'${r["lcoe_target"]}',
-                    (r['achieved_lcoe'], r['variance']),
+                    (r['lcoe'], r['variance']),
                     textcoords="offset points",
                     xytext=(8, 5), fontsize=9, alpha=0.8)
 
@@ -128,7 +128,7 @@ def plot_site_map(site_data: Dict, results: List[Dict],
             return
     else:
         # Use best (lowest achieved LCOE)
-        result = min(feasible, key=lambda r: r['achieved_lcoe'])
+        result = min(feasible, key=lambda r: r['lcoe'])
 
     selected = result['selected_sites']
     collection_point = result['collection_point']
@@ -169,7 +169,7 @@ def plot_site_map(site_data: Dict, results: List[Dict],
     ax.set_xlabel('Longitude (\u00b0)', fontsize=12)
     ax.set_ylabel('Latitude (\u00b0)', fontsize=12)
     ax.set_title(f'Selected Sites for LCOE Target ${result["lcoe_target"]}/MWh\n'
-                 f'Achieved: ${result["achieved_lcoe"]:.0f}/MWh | Variance: {result["variance"]:.1f} MW\u00b2',
+                 f'Achieved: ${result["lcoe"]:.0f}/MWh | Variance: {result["variance"]:.1f} MW\u00b2',
                  fontsize=14, fontweight='bold')
 
     # Colorbar
@@ -213,9 +213,9 @@ def plot_cost_breakdown(results: List[Dict], save_path: Optional[str] = None):
     feasible = sorted(feasible, key=lambda r: r['lcoe_target'])
 
     lcoe_targets = [f'${r["lcoe_target"]}' for r in feasible]
-    cost_fixed = [r['cost_fixed'] / 1e6 for r in feasible]  # Convert to $M
-    cost_inter = [r['cost_inter_array'] / 1e6 for r in feasible]
-    cost_trans = [r['cost_transmission'] / 1e6 for r in feasible]
+    cost_fixed = [r['cost_breakdown']['fixed'] / 1e6 for r in feasible]  # Convert to $M
+    cost_inter = [r['cost_breakdown']['inter_array'] / 1e6 for r in feasible]
+    cost_trans = [r['cost_breakdown']['transmission'] / 1e6 for r in feasible]
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -240,7 +240,7 @@ def plot_cost_breakdown(results: List[Dict], save_path: Optional[str] = None):
 
     # Add total cost labels on top of bars
     for i, r in enumerate(feasible):
-        total = r['cost_total'] / 1e6
+        total = r['total_cost'] / 1e6
         ax.annotate(f'${total:.2f}M', (i, total + 0.1),
                     ha='center', fontsize=9, fontweight='bold')
 
@@ -446,7 +446,7 @@ def plot_capacity_factor_comparison(site_data: Dict, results: List[Dict],
         selected_cfs_all.extend(all_cfs[r['selected_sites']])
 
     # Best result
-    best = min(feasible, key=lambda r: r['achieved_lcoe'])
+    best = min(feasible, key=lambda r: r['lcoe'])
     best_cfs = all_cfs[best['selected_sites']]
 
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -557,7 +557,7 @@ def plot_energy_vs_variance(results: List[Dict], save_path: Optional[str] = None
         print("No feasible results to plot.")
         return
 
-    energies = [r['energy_net'] / 1e3 for r in feasible]  # GWh
+    energies = [r['total_energy'] / 1e3 for r in feasible]  # GWh
     variances = [r['variance'] for r in feasible]
     lcoe_targets = [r['lcoe_target'] for r in feasible]
 
