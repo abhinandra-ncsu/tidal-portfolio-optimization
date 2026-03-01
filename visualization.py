@@ -666,3 +666,213 @@ def plot_all(site_data: Dict, results: Dict, save_dir: Optional[str] = None,
     if save_dir:
         print(f"Figures saved to: {save_dir}/")
     print("=" * 60)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Model Comparison Plots
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_MODEL_COLORS = {
+    'Min-Variance': '#2ecc71',
+    'Min-LCOE': '#3498db',
+    'Max-Generation': '#e74c3c',
+}
+_MODEL_MARKERS = {
+    'Min-Variance': 's',
+    'Min-LCOE': 'D',
+    'Max-Generation': '^',
+}
+
+
+def plot_comparison_site_map(site_data: Dict, model_results: Dict[str, Dict],
+                              shoreline_path: Optional[str] = None,
+                              save_path: Optional[str] = None):
+    """
+    Plot geographic map with selected sites from each model overlaid.
+
+    Each model's selections are shown in a distinct color/marker.
+    Shared sites get a special highlight ring.
+
+    Args:
+        site_data: Dict with latitudes, longitudes, capacity_factors
+        model_results: Dict mapping model name to its single result dict,
+            e.g. {'Min-Variance': result, 'Min-LCOE': result, ...}
+        shoreline_path: Optional path to shoreline shapefile
+        save_path: Optional path to save figure
+    """
+    lats = site_data['latitudes']
+    lons = site_data['longitudes']
+    cfs = site_data['capacity_factors']
+
+    fig, ax = plt.subplots(figsize=(13, 10))
+    _overlay_shoreline(ax, shoreline_path)
+
+    # Background: all candidate sites
+    ax.scatter(lons, lats, c=cfs, cmap='Blues', s=25, alpha=0.35,
+               edgecolors='gray', linewidth=0.3, vmin=0, vmax=cfs.max(),
+               zorder=2, label='_nolegend_')
+
+    # Overlay each model's selections
+    offset_lon = [-0.012, 0.0, 0.012]  # slight jitter so overlapping markers are visible
+    legend_handles = []
+
+    for k, (name, result) in enumerate(model_results.items()):
+        if result is None or not result.get('feasible'):
+            continue
+        sel = result['selected_sites']
+        cp = result['collection_point']
+
+        color = _MODEL_COLORS.get(name, f'C{k}')
+        marker = _MODEL_MARKERS.get(name, 'o')
+
+        # Selected sites
+        h = ax.scatter(lons[sel] + offset_lon[k % 3], lats[sel],
+                        s=180, marker=marker, c=color, edgecolors='black',
+                        linewidth=1.5, zorder=5 + k)
+        legend_handles.append(h)
+
+        # Collection point
+        ax.scatter(lons[cp] + offset_lon[k % 3], lats[cp],
+                    s=350, marker='*', c=color, edgecolors='black',
+                    linewidth=1.5, zorder=6 + k)
+
+        # Lines from sites to CP
+        for si in sel:
+            ax.plot([lons[si] + offset_lon[k % 3], lons[cp] + offset_lon[k % 3]],
+                    [lats[si], lats[cp]],
+                    color=color, alpha=0.35, linewidth=1, zorder=3)
+
+    ax.set_xlabel('Longitude (\u00b0)', fontsize=12)
+    ax.set_ylabel('Latitude (\u00b0)', fontsize=12)
+    ax.set_title('Model Comparison — Selected Sites', fontsize=14, fontweight='bold')
+
+    ax.legend(legend_handles,
+              [n for n, r in model_results.items() if r and r.get('feasible')],
+              loc='upper left', fontsize=10, title='Model')
+
+    ax.grid(True, alpha=0.3)
+    plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        print(f"Saved: {save_path}")
+
+    plt.show()
+
+
+def plot_comparison_metrics(model_results: Dict[str, Dict],
+                             save_path: Optional[str] = None):
+    """
+    Bar chart comparing LCOE, variance, and energy across models.
+
+    Three side-by-side subplots with one bar per model.
+
+    Args:
+        model_results: Dict mapping model name to its single result dict
+        save_path: Optional path to save figure
+    """
+    names = []
+    lcoes, variances, energies = [], [], []
+
+    for name, r in model_results.items():
+        if r is None or not r.get('feasible'):
+            continue
+        names.append(name)
+        lcoes.append(r['lcoe'])
+        variances.append(r['variance'])
+        energies.append(r['total_energy'] / 1e3)  # GWh
+
+    if not names:
+        print("No feasible results to plot.")
+        return
+
+    colors = [_MODEL_COLORS.get(n, 'gray') for n in names]
+    x = np.arange(len(names))
+
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+    for ax, vals, ylabel, title, fmt in zip(
+        axes,
+        [lcoes, variances, energies],
+        ['$/MWh', 'MW\u00b2', 'GWh/year'],
+        ['LCOE', 'Portfolio Variance', 'Net Energy'],
+        ['${:.0f}', '{:.1f}', '{:.1f}'],
+    ):
+        bars = ax.bar(x, vals, color=colors, edgecolor='black', width=0.55)
+        ax.set_xticks(x)
+        ax.set_xticklabels(names, fontsize=10)
+        ax.set_ylabel(ylabel, fontsize=11)
+        ax.set_title(title, fontsize=13, fontweight='bold')
+        ax.grid(True, alpha=0.3, axis='y')
+
+        for bar, v in zip(bars, vals):
+            ax.annotate(fmt.format(v),
+                        (bar.get_x() + bar.get_width() / 2, bar.get_height()),
+                        ha='center', va='bottom', fontsize=10, fontweight='bold')
+
+    fig.suptitle('Model Comparison — Key Metrics', fontsize=15, fontweight='bold', y=1.02)
+    plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        print(f"Saved: {save_path}")
+
+    plt.show()
+
+
+def plot_comparison_cost_breakdown(model_results: Dict[str, Dict],
+                                    save_path: Optional[str] = None):
+    """
+    Stacked bar chart of cost breakdown for each model.
+
+    Args:
+        model_results: Dict mapping model name to its single result dict
+        save_path: Optional path to save figure
+    """
+    names = []
+    fixed, inter, trans = [], [], []
+
+    for name, r in model_results.items():
+        if r is None or not r.get('feasible'):
+            continue
+        names.append(name)
+        cb = r['cost_breakdown']
+        fixed.append(cb['fixed'] / 1e6)
+        inter.append(cb['inter_array'] / 1e6)
+        trans.append(cb['transmission'] / 1e6)
+
+    if not names:
+        print("No feasible results to plot.")
+        return
+
+    x = np.arange(len(names))
+    width = 0.55
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    ax.bar(x, fixed, width, label='Device + Intra-Array', color='#2ecc71')
+    ax.bar(x, inter, width, bottom=fixed, label='Inter-Array Cable', color='#3498db')
+    ax.bar(x, trans, width,
+           bottom=[f + i for f, i in zip(fixed, inter)],
+           label='Transmission', color='#e74c3c')
+
+    # Total labels
+    for i in range(len(names)):
+        total = fixed[i] + inter[i] + trans[i]
+        ax.annotate(f'${total:.1f}M', (i, total + 0.2),
+                    ha='center', fontsize=10, fontweight='bold')
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(names, fontsize=11)
+    ax.set_ylabel('Annual Cost ($M/year)', fontsize=12)
+    ax.set_title('Cost Breakdown by Model', fontsize=14, fontweight='bold')
+    ax.legend(loc='upper right')
+    ax.grid(True, alpha=0.3, axis='y')
+
+    plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path, dpi=150, bbox_inches='tight')
+        print(f"Saved: {save_path}")
+
+    plt.show()
