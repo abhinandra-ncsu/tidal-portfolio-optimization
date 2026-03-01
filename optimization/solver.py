@@ -10,7 +10,6 @@ Functions:
 """
 
 import time
-import numpy as np
 
 from pyomo.environ import (
     SolverFactory,
@@ -20,12 +19,11 @@ from pyomo.environ import (
 
 from .model import (
     build_optimization_model,
-    get_model_solution,
-    evaluate_solution,
+    extract_solution_metrics,
 )
 
 
-def solve_with_gurobi(pyomo_model, model_inputs, timeout=300, verbose=False):
+def solve_with_gurobi(pyomo_model, timeout=300, verbose=False):
     """
     Solve using Gurobi as an exact binary quadratic program.
 
@@ -34,10 +32,6 @@ def solve_with_gurobi(pyomo_model, model_inputs, timeout=300, verbose=False):
 
     Args:
         pyomo_model: Built Pyomo ConcreteModel (from build_optimization_model)
-        model_inputs: Dict with model input arrays, used for solution evaluation.
-            Required keys: n_candidates, num_arrays, energy_per_site,
-            covariance_matrix, total_fixed_cost, inter_array_costs,
-            transmission_cost
         timeout: Solver time limit in seconds
         verbose: Print solver output
 
@@ -68,28 +62,13 @@ def solve_with_gurobi(pyomo_model, model_inputs, timeout=300, verbose=False):
                             TerminationCondition.feasible)):
         return None
 
-    # Extract binary solution directly (no rounding needed)
-    x_values = get_model_solution(pyomo_model)
-    x_binary = np.round(x_values).astype(int)
-
-    # Evaluate solution
-    metrics = evaluate_solution(
-        x=x_binary,
-        n_candidates=model_inputs['n_candidates'],
-        num_arrays=model_inputs['num_arrays'],
-        energy_per_site=model_inputs['energy_per_site'],
-        covariance_matrix=model_inputs['covariance_matrix'],
-        total_fixed_cost=model_inputs['total_fixed_cost'],
-        inter_array_costs=model_inputs['inter_array_costs'],
-        transmission_cost=model_inputs['transmission_cost'],
-    )
-
-    selected = np.where(x_binary == 1)[0]
+    # Extract solution and metrics from solved model
+    metrics = extract_solution_metrics(pyomo_model)
 
     return {
         'success': True,
-        'x_values': x_binary,
-        'selected_indices': selected,
+        'x_values': metrics['x_values'],
+        'selected_indices': metrics['selected_indices'],
         'variance': metrics['variance'],
         'lcoe': metrics['lcoe'],
         'total_cost': metrics['total_cost'],
@@ -138,8 +117,7 @@ def solve_optimization_model(model_inputs, timeout=300, verbose=False):
         lcoe_target=model_inputs['lcoe_target'],
     )
 
-    result = solve_with_gurobi(pyomo_model, model_inputs,
-                                timeout=timeout, verbose=verbose)
+    result = solve_with_gurobi(pyomo_model, timeout=timeout, verbose=verbose)
     if result is not None:
         result['solve_time'] = time.time() - start_time
 

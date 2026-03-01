@@ -12,8 +12,7 @@ Subject to:
 Functions:
     - validate_model_inputs: Validate input arrays and dimensions
     - build_optimization_model: Create Pyomo ConcreteModel
-    - get_model_solution: Extract decision variable values
-    - evaluate_solution: Evaluate metrics for a binary solution vector
+    - extract_solution_metrics: Extract solution and metrics from solved Pyomo model
 """
 
 import numpy as np
@@ -157,72 +156,49 @@ def build_optimization_model(n_candidates, num_arrays, energy_per_site,
     return model
 
 
-def get_model_solution(pyomo_model):
+def extract_solution_metrics(pyomo_model):
     """
-    Extract solution values from a solved Pyomo model.
+    Extract solution and metrics directly from a solved Pyomo model.
+
+    Uses Pyomo's value() to read solved variable values and objective,
+    avoiding redundant recalculation with numpy.
 
     Args:
         pyomo_model: Solved Pyomo ConcreteModel (from build_optimization_model)
 
     Returns:
-        numpy array of x values (continuous or binary)
+        dict with: x_values, selected_indices, variance, lcoe,
+                   total_cost, total_energy, cost_fixed,
+                   cost_inter_array, cost_transmission
     """
-    return np.array([value(pyomo_model.x[i]) for i in pyomo_model.Sites])
+    m = pyomo_model
 
+    # Extract decision variables once
+    x_values = np.array([value(m.x[i]) for i in m.Sites])
 
-def get_model_objective_value(pyomo_model):
-    """
-    Get objective (variance) value from a solved Pyomo model.
+    variance = float(value(m.objective))
 
-    Args:
-        pyomo_model: Solved Pyomo ConcreteModel
+    total_inter_array = float(sum(
+        m.inter_array_costs[i] * x_values[i] for i in m.Sites
+    ))
+    total_energy = float(sum(
+        m.energy[i] * x_values[i] for i in m.Sites
+    ))
 
-    Returns:
-        float: Variance value
-    """
-    return value(pyomo_model.objective)
+    total_fixed = m.total_fixed_cost
+    transmission = m.transmission_cost
+    total_cost = total_fixed + total_inter_array + transmission
 
-
-def evaluate_solution(x, n_candidates, num_arrays, energy_per_site,
-                       covariance_matrix, total_fixed_cost,
-                       inter_array_costs, transmission_cost):
-    """
-    Evaluate metrics for a given binary solution vector.
-
-    Args:
-        x: Binary solution vector (length n_candidates)
-        n_candidates: Number of candidate sites
-        num_arrays: Number of arrays deployed
-        energy_per_site: Net annual energy per site (MWh/year)
-        covariance_matrix: Covariance matrix (n x n)
-        total_fixed_cost: Device + intra-array cost ($/year)
-        inter_array_costs: Inter-array cable cost per site ($/year)
-        transmission_cost: Export cable cost ($/year)
-
-    Returns:
-        dict with: variance, lcoe, total_cost, total_energy,
-                   cost_fixed, cost_inter_array, cost_transmission
-    """
-    # Variance
-    variance = float(x @ covariance_matrix @ x)
-
-    # Costs
-    total_fixed = total_fixed_cost
-    total_inter_array = float(np.sum(inter_array_costs * x))
-    total_cost = total_fixed + total_inter_array + transmission_cost
-
-    # Energy
-    total_energy = float(np.sum(energy_per_site * x))
-
-    # LCOE
     lcoe = total_cost / total_energy if total_energy > 0 else float('inf')
 
     return {
+        'x_values': x_values,
+        'selected_indices': np.where(x_values == 1)[0],
         'variance': variance,
         'lcoe': lcoe,
         'total_cost': total_cost,
         'total_energy': total_energy,
         'cost_fixed': total_fixed,
         'cost_inter_array': total_inter_array,
-        'cost_transmission': transmission_cost,
+        'cost_transmission': transmission,
     }

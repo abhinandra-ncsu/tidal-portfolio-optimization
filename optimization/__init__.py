@@ -39,9 +39,7 @@ from .solver import (
 from .model import (
     validate_model_inputs,
     build_optimization_model,
-    get_model_solution,
-    get_model_objective_value,
-    evaluate_solution,
+    extract_solution_metrics,
 )
 
 # Result saving
@@ -61,9 +59,7 @@ __all__ = [
     # Model building functions
     "validate_model_inputs",
     "build_optimization_model",
-    "get_model_solution",
-    "get_model_objective_value",
-    "evaluate_solution",
+    "extract_solution_metrics",
     # Result saving
     "save_optimization_results",
 ]
