@@ -416,8 +416,3 @@ def get_best_result(results):
     if not feasible:
         return None
     return min(feasible, key=lambda r: r['lcoe'])
-
-
-def get_feasible_count(results):
-    """Count number of feasible results."""
-    return sum(1 for r in results if r['feasible'])

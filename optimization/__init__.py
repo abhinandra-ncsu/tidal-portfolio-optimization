@@ -26,7 +26,6 @@ from .portfolio import (
     find_viable_collection_points,
     optimize_for_lcoe_target,
     get_best_result,
-    get_feasible_count,
 )
 
 # Solver functions
@@ -52,7 +51,6 @@ __all__ = [
     "find_viable_collection_points",
     "optimize_for_lcoe_target",
     "get_best_result",
-    "get_feasible_count",
     # Solver functions
     "solve_optimization_model",
     "solve_with_gurobi",

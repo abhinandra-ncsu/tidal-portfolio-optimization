@@ -42,7 +42,6 @@ from .optimization import (
     run_portfolio_optimization,
     calculate_distance_matrix,
     get_best_result,
-    get_feasible_count,
     save_optimization_results,
 )
 
@@ -89,7 +88,6 @@ __all__ = [
     "run_portfolio_optimization",
     "calculate_distance_matrix",
     "get_best_result",
-    "get_feasible_count",
     "save_optimization_results",
     # Cost functions
     "calculate_total_cost",
