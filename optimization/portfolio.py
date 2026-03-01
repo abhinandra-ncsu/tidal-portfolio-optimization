@@ -79,7 +79,7 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
                               lcoe_target, cluster_radius_km,
                               total_fixed_cost, project_capacity_mw,
                               array_power_mw, inter_array_voltage_v,
-                              power_factor, fcr, capacity_factor,
+                              power_factor, fcr,
                               opex_rate, verbose=True):
     """
     Optimize for a single LCOE target.
@@ -101,7 +101,6 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
         inter_array_voltage_v: Inter-array cable voltage (V)
         power_factor: Power factor
         fcr: Fixed charge rate
-        capacity_factor: Average capacity factor (for transmission)
         opex_rate: OPEX as fraction of CAPEX (for transmission)
         verbose: Print progress
 
@@ -142,11 +141,12 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
             for d in distances_to_cp
         ])
 
-        # Transmission cost
+        # Transmission cost (use collection point's capacity factor)
         shore_dist = site_data['dist_to_shore_km'][cp_idx]
+        cp_capacity_factor = float(site_data['capacity_factors'][cp_idx])
         trans = calculate_transmission_cost(
             shore_dist, project_capacity_mw,
-            capacity_factor=capacity_factor, fcr=fcr, opex_rate=opex_rate,
+            capacity_factor=cp_capacity_factor, fcr=fcr, opex_rate=opex_rate,
         )
 
         # Build model inputs dict
@@ -183,9 +183,10 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
 
         # Get transmission mode
         shore_dist = site_data['dist_to_shore_km'][best_cp]
+        cp_capacity_factor = float(site_data['capacity_factors'][best_cp])
         trans = calculate_transmission_cost(
             shore_dist, project_capacity_mw,
-            capacity_factor=capacity_factor, fcr=fcr, opex_rate=opex_rate,
+            capacity_factor=cp_capacity_factor, fcr=fcr, opex_rate=opex_rate,
         )
 
         return {
@@ -223,7 +224,7 @@ def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
                                 fcr, rows, cols, power_factor,
                                 row_spacing_km, col_spacing_km,
                                 intra_array_voltage_v, inter_array_voltage_v,
-                                capacity_factor, opex_rate,
+                                opex_rate,
                                 current_mode="total", verbose=True):
     """
     Run portfolio optimization.
@@ -255,7 +256,6 @@ def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
         col_spacing_km: Column spacing in km
         intra_array_voltage_v: Intra-array cable voltage (V)
         inter_array_voltage_v: Inter-array cable voltage (V)
-        capacity_factor: Average capacity factor (for transmission)
         opex_rate: OPEX as fraction of CAPEX (for transmission)
         current_mode: "total" (default) or "tidal" -- selects which timeseries
             to use for energy/covariance calculations
@@ -359,7 +359,6 @@ def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
             inter_array_voltage_v=inter_array_voltage_v,
             power_factor=power_factor,
             fcr=fcr,
-            capacity_factor=capacity_factor,
             opex_rate=opex_rate,
             verbose=verbose,
         )

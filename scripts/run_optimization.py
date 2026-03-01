@@ -143,7 +143,6 @@ def main():
         col_spacing_km=COL_SPACING_M / 1000.0,
         intra_array_voltage_v=INTRA_ARRAY_VOLTAGE_V,
         inter_array_voltage_v=INTER_ARRAY_VOLTAGE_V,
-        capacity_factor=0.35,  # Mean CF estimate for transmission sizing
         opex_rate=OPEX_RATE,
         current_mode=CURRENT_MODE,
         verbose=True,
