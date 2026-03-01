@@ -60,7 +60,6 @@ from .costs import (
 
 # Energy functions
 from .energy import (
-    prepare_energy_data,
     calculate_energy_vector,
     calculate_covariance,
     apply_power_curve,
@@ -102,7 +101,6 @@ __all__ = [
     "calculate_inter_array_cost",
     "calculate_intra_array_cost",
     # Energy functions
-    "prepare_energy_data",
     "calculate_energy_vector",
     "calculate_covariance",
     "apply_power_curve",

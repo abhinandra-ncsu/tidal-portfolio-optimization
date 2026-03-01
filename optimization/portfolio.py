@@ -12,7 +12,7 @@ import numpy as np
 
 from ..costs import calculate_total_fixed_cost
 from ..costs import calculate_inter_array_cost, calculate_transmission_cost
-from ..energy import prepare_energy_data
+from ..energy import calculate_energy_vector, calculate_covariance
 from .solver import solve_optimization_model
 
 
@@ -297,20 +297,17 @@ def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
         active_cf = site_data['capacity_factors']
         active_power = site_data['power_timeseries']
 
-    # Prepare energy data
+    # Calculate energy vector and covariance matrix
     if verbose:
         mode_label = "tidal-only" if current_mode == "tidal" else "total"
         print(f"Preparing energy data (current_mode={mode_label})...")
-    energy_data = prepare_energy_data(
-        capacity_factors=active_cf,
-        power_timeseries=active_power,
-        rated_power_mw=rated_power_mw,
-        turbines_per_array=turbines_per_array,
-        wake_loss_factor=wake_loss_factor,
+    energy_vector = calculate_energy_vector(
+        active_cf, rated_power_mw, turbines_per_array, wake_loss_factor
     )
-
-    energy_vector = energy_data['energy_vector']
-    covariance_matrix = energy_data['covariance_matrix']
+    cov_result = calculate_covariance(
+        active_power, turbines_per_array, wake_loss_factor, scaled=True
+    )
+    covariance_matrix = cov_result['covariance_matrix']
 
     # Find viable collection points
     if verbose:
