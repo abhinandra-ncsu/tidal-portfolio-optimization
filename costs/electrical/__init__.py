@@ -34,7 +34,6 @@ from .intra_array import (
 # Inter-array functions
 from .inter_array import (
     calculate_inter_array_cost,
-    calculate_single_inter_array_cost,
     calculate_substation_transformer_cost,
 )
 
@@ -71,7 +70,6 @@ __all__ = [
     "calculate_string_cable_cost",
     # Inter-array
     "calculate_inter_array_cost",
-    "calculate_single_inter_array_cost",
     "calculate_substation_transformer_cost",
     # Transmission (physics-based)
     "calculate_transmission_cost",

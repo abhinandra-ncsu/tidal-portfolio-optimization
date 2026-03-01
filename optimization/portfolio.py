@@ -11,7 +11,7 @@ the optimal array placement that minimizes variance.
 import numpy as np
 
 from ..costs import calculate_total_fixed_cost
-from ..costs import calculate_single_inter_array_cost, calculate_transmission_cost
+from ..costs import calculate_inter_array_cost, calculate_transmission_cost
 from ..energy import prepare_energy_data
 from .solver import solve_optimization_model
 
@@ -138,7 +138,7 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
         # Inter-array cable costs
         distances_to_cp = distance_matrix[cp_idx, candidates]
         inter_array_costs = np.array([
-            calculate_single_inter_array_cost(
+            calculate_inter_array_cost(
                 d, array_power_mw=array_power_mw,
                 voltage_v=inter_array_voltage_v,
                 power_factor=power_factor, fcr=fcr,

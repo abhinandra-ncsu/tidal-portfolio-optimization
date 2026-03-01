@@ -11,8 +11,6 @@ Components:
     4. Transmission (collection point to shore)
 """
 
-import numpy as np
-
 from .device import calculate_device_cost
 from .electrical.intra_array import calculate_intra_array_cost_for_arrays
 from .electrical.inter_array import calculate_inter_array_cost
@@ -64,12 +62,16 @@ def calculate_total_cost(num_arrays, inter_array_distances_km, shore_distance_km
         voltage_v=intra_array_voltage_v, fcr=fcr,
     )
 
-    # Inter-array costs
-    inter = calculate_inter_array_cost(
-        inter_array_distances_km,
-        array_power_mw=array_power_mw, voltage_v=inter_array_voltage_v,
-        power_factor=power_factor, fcr=fcr,
-    )
+    # Inter-array costs (one per array)
+    inter_costs = [
+        calculate_inter_array_cost(
+            d, array_power_mw=array_power_mw, voltage_v=inter_array_voltage_v,
+            power_factor=power_factor, fcr=fcr,
+        )
+        for d in inter_array_distances_km
+    ]
+    inter_annualized = sum(c['annualized_cost'] for c in inter_costs)
+    inter_capex = sum(c['total_capex'] for c in inter_costs)
 
     # Transmission costs
     trans = calculate_transmission_cost(
@@ -79,11 +81,11 @@ def calculate_total_cost(num_arrays, inter_array_distances_km, shore_distance_km
 
     # Totals
     fixed_cost = device['annualized_cost'] + intra['annualized_cost']
-    variable_cost = inter['annualized_cost'] + trans['annualized_cost']
+    variable_cost = inter_annualized + trans['annualized_cost']
     total_cost = fixed_cost + variable_cost
 
     total_capex = (device['total_capex'] + intra['total_capex'] +
-                   inter['total_capex'] + trans['capex'])
+                   inter_capex + trans['capex'])
 
     return {
         # Summary
@@ -95,7 +97,7 @@ def calculate_total_cost(num_arrays, inter_array_distances_km, shore_distance_km
         # Component costs (annualized)
         'device_cost': device['annualized_cost'],
         'intra_array_cost': intra['annualized_cost'],
-        'inter_array_cost': inter['annualized_cost'],
+        'inter_array_cost': inter_annualized,
         'transmission_cost': trans['annualized_cost'],
 
         # Transmission info
@@ -105,7 +107,7 @@ def calculate_total_cost(num_arrays, inter_array_distances_km, shore_distance_km
         # Component details
         'device': device,
         'intra_array': intra,
-        'inter_array': inter,
+        'inter_array': inter_costs,
         'transmission': trans,
 
         # Project info
