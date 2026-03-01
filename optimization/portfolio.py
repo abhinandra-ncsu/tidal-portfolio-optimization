@@ -78,9 +78,7 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
                               distance_matrix, viable_cps, num_arrays,
                               lcoe_target, cluster_radius_km,
                               total_fixed_cost, project_capacity_mw,
-                              array_power_mw, inter_array_voltage_v,
-                              power_factor, fcr,
-                              opex_rate, verbose=True):
+                              array_power_mw, config, verbose=True):
     """
     Optimize for a single LCOE target.
 
@@ -98,10 +96,7 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
         total_fixed_cost: Total fixed cost for the fleet ($/year)
         project_capacity_mw: Total project capacity (MW)
         array_power_mw: Power per array (MW)
-        inter_array_voltage_v: Inter-array cable voltage (V)
-        power_factor: Power factor
-        fcr: Fixed charge rate
-        opex_rate: OPEX as fraction of CAPEX (for transmission)
+        config: ProjectConfig with inter_array_voltage_v, power_factor, fcr, opex_rate
         verbose: Print progress
 
     Returns:
@@ -134,9 +129,7 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
         distances_to_cp = distance_matrix[cp_idx, candidates]
         inter_array_costs = np.array([
             calculate_inter_array_cost(
-                d, array_power_mw=array_power_mw,
-                voltage_v=inter_array_voltage_v,
-                power_factor=power_factor, fcr=fcr,
+                d, array_power_mw=array_power_mw, config=config,
             )['annualized_cost']
             for d in distances_to_cp
         ])
@@ -146,7 +139,7 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
         cp_capacity_factor = float(site_data['capacity_factors'][cp_idx])
         trans = calculate_transmission_cost(
             shore_dist, project_capacity_mw,
-            capacity_factor=cp_capacity_factor, fcr=fcr, opex_rate=opex_rate,
+            capacity_factor=cp_capacity_factor, config=config,
         )
 
         # Build model inputs dict
@@ -186,7 +179,7 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
         cp_capacity_factor = float(site_data['capacity_factors'][best_cp])
         trans = calculate_transmission_cost(
             shore_dist, project_capacity_mw,
-            capacity_factor=cp_capacity_factor, fcr=fcr, opex_rate=opex_rate,
+            capacity_factor=cp_capacity_factor, config=config,
         )
 
         return {
@@ -221,20 +214,14 @@ def optimize_for_lcoe_target(site_data, energy_vector, covariance_matrix,
 def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
                                 rated_power_mw, cluster_radius_km=20.0,
                                 current_mode="total",
-                                wake_loss_factor=None,
-                                turbines_per_array=None,
-                                fcr=None, rows=None, cols=None,
-                                power_factor=None,
-                                row_spacing_km=None, col_spacing_km=None,
-                                intra_array_voltage_v=None,
-                                inter_array_voltage_v=None,
-                                opex_rate=None,
+                                config=None,
                                 verbose=True):
     """
     Run portfolio optimization.
 
-    Main entry point for portfolio optimization. Engineering constants default
-    to values from ``config.py`` and can be overridden per call.
+    Main entry point for portfolio optimization. Engineering constants are
+    bundled in a ``ProjectConfig``; pass ``config=ProjectConfig(...)`` to
+    override defaults.
 
     Args:
         site_data: Dict from load_site_data_from_npz() with:
@@ -252,19 +239,8 @@ def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
         cluster_radius_km: Max distance from collection point (km). Default 20.
         current_mode: "total" (default) or "tidal" -- selects which timeseries
             to use for energy/covariance calculations
-
-        wake_loss_factor: Wake loss multiplier. Default from config.
-        turbines_per_array: Turbines per array. Default from config (rows * cols).
-        fcr: Fixed charge rate. Default from config.
-        rows: Array rows. Default from config.
-        cols: Array columns. Default from config.
-        power_factor: Power factor. Default from config.
-        row_spacing_km: Row spacing in km. Default from config.
-        col_spacing_km: Column spacing in km. Default from config.
-        intra_array_voltage_v: Intra-array cable voltage (V). Default from config.
-        inter_array_voltage_v: Inter-array cable voltage (V). Default from config.
-        opex_rate: OPEX as fraction of CAPEX. Default from config.
-
+        config: ProjectConfig with all engineering constants.
+            Defaults to DEFAULT_CONFIG.
         verbose: Print progress
 
     Returns:
@@ -274,30 +250,15 @@ def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
             - wake_loss_factor, cluster_radius_km, fcr, current_mode
             - site_data: Original site data
     """
-    # Resolve defaults from config
-    from ..config import (
-        WAKE_LOSS_FACTOR, TURBINES_PER_ARRAY, FCR,
-        ARRAY_ROWS, ARRAY_COLS, POWER_FACTOR,
-        ROW_SPACING_M, COL_SPACING_M,
-        INTRA_ARRAY_VOLTAGE_V, INTER_ARRAY_VOLTAGE_V, OPEX_RATE,
-    )
-    if wake_loss_factor is None: wake_loss_factor = WAKE_LOSS_FACTOR
-    if turbines_per_array is None: turbines_per_array = TURBINES_PER_ARRAY
-    if fcr is None: fcr = FCR
-    if rows is None: rows = ARRAY_ROWS
-    if cols is None: cols = ARRAY_COLS
-    if power_factor is None: power_factor = POWER_FACTOR
-    if row_spacing_km is None: row_spacing_km = ROW_SPACING_M / 1000.0
-    if col_spacing_km is None: col_spacing_km = COL_SPACING_M / 1000.0
-    if intra_array_voltage_v is None: intra_array_voltage_v = INTRA_ARRAY_VOLTAGE_V
-    if inter_array_voltage_v is None: inter_array_voltage_v = INTER_ARRAY_VOLTAGE_V
-    if opex_rate is None: opex_rate = OPEX_RATE
+    from ..config import DEFAULT_CONFIG
+    if config is None:
+        config = DEFAULT_CONFIG
 
     # Sort LCOE targets
     lcoe_targets = sorted(lcoe_targets)
 
     # Project capacity
-    array_power_mw = turbines_per_array * rated_power_mw
+    array_power_mw = config.turbines_per_array * rated_power_mw
     project_capacity_mw = num_arrays * array_power_mw
 
     # Calculate distance matrix
@@ -325,12 +286,8 @@ def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
     if verbose:
         mode_label = "tidal-only" if current_mode == "tidal" else "total"
         print(f"Preparing energy data (current_mode={mode_label})...")
-    energy_vector = calculate_energy_vector(
-        active_cf, rated_power_mw, turbines_per_array, wake_loss_factor
-    )
-    cov_result = calculate_covariance(
-        active_power, turbines_per_array, wake_loss_factor, scaled=True
-    )
+    energy_vector = calculate_energy_vector(active_cf, rated_power_mw, config)
+    cov_result = calculate_covariance(active_power, config, scaled=True)
     covariance_matrix = cov_result['covariance_matrix']
 
     # Find viable collection points
@@ -350,15 +307,8 @@ def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
     # Calculate total fixed cost for the fleet (economies of scale)
     total_fixed_cost = calculate_total_fixed_cost(
         num_arrays=num_arrays,
-        turbines_per_array=turbines_per_array,
-        fcr=fcr,
-        rows=rows,
-        cols=cols,
         turbine_power_mw=rated_power_mw,
-        power_factor=power_factor,
-        row_spacing_km=row_spacing_km,
-        col_spacing_km=col_spacing_km,
-        intra_array_voltage_v=intra_array_voltage_v,
+        config=config,
     )
 
     # Run optimization for each LCOE target
@@ -380,10 +330,7 @@ def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
             total_fixed_cost=total_fixed_cost,
             project_capacity_mw=project_capacity_mw,
             array_power_mw=array_power_mw,
-            inter_array_voltage_v=inter_array_voltage_v,
-            power_factor=power_factor,
-            fcr=fcr,
-            opex_rate=opex_rate,
+            config=config,
             verbose=verbose,
         )
         results.append(result)
@@ -391,11 +338,11 @@ def run_portfolio_optimization(site_data, num_arrays, lcoe_targets,
     return {
         'results': results,
         'num_arrays': num_arrays,
-        'turbines_per_array': turbines_per_array,
+        'turbines_per_array': config.turbines_per_array,
         'project_capacity_mw': project_capacity_mw,
-        'wake_loss_factor': wake_loss_factor,
+        'wake_loss_factor': config.wake_loss_factor,
         'cluster_radius_km': cluster_radius_km,
-        'fcr': fcr,
+        'fcr': config.fcr,
         'current_mode': current_mode,
         'lcoe_targets': np.array(lcoe_targets),
         'site_data': site_data,

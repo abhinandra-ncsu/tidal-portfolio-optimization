@@ -605,7 +605,7 @@ def calculate_hvdc_cost(shore_distance_km, rated_power_mw, capacity_factor,
 # =============================================================================
 
 def calculate_transmission_cost(shore_distance_km, project_capacity_mw,
-                                 capacity_factor, fcr, opex_rate,
+                                 capacity_factor, config,
                                  force_mode=None, ac_cable_data=None, dc_cable_data=None,
                                  min_voltage_kv=None, max_voltage_kv=None,
                                  material=None, add_extra_cable=0):
@@ -619,8 +619,7 @@ def calculate_transmission_cost(shore_distance_km, project_capacity_mw,
         shore_distance_km: Distance from collection point to shore
         project_capacity_mw: Total project capacity in MW
         capacity_factor: Average capacity factor
-        fcr: Fixed charge rate
-        opex_rate: OPEX as fraction of CAPEX
+        config: ProjectConfig with fcr and opex_rate
         force_mode: Force 'HVAC' or 'HVDC' (optional)
         ac_cable_data: DataFrame of AC cables (loads default if None)
         dc_cable_data: DataFrame of DC cables (loads default if None)
@@ -640,6 +639,9 @@ def calculate_transmission_cost(shore_distance_km, project_capacity_mw,
             - efficiency: Transmission efficiency
             - comparison: Both AC and DC results for reference
     """
+    fcr = config.fcr
+    opex_rate = config.opex_rate
+
     # Calculate HVAC option
     hvac_result = None
     if force_mode != 'HVDC':

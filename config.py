@@ -11,6 +11,7 @@ all data paths for a given region.
 For turbine loading, see site_processing.turbine.
 """
 
+from dataclasses import dataclass
 from pathlib import Path
 
 
@@ -127,3 +128,39 @@ INTER_ARRAY_VOLTAGE_V = 66000  # 66 kV inter-array cables
 
 WAKE_LOSS_FACTOR = 0.88  # 12% wake loss (multiply by this)
 AVAILABILITY = 0.95  # 95% availability
+
+
+# =============================================================================
+# PROJECT CONFIG DATACLASS
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class ProjectConfig:
+    """Bundle of engineering constants for a tidal project.
+
+    Collects array layout, electrical, financial, and energy parameters
+    into a single immutable object so that functions can accept one
+    ``config`` argument instead of 10+ individual parameters.
+
+    ``rated_power_mw`` is intentionally excluded — it comes from the
+    turbine spec at runtime, not from project-level config.
+    """
+
+    rows: int = ARRAY_ROWS
+    cols: int = ARRAY_COLS
+    row_spacing_km: float = ROW_SPACING_M / 1000.0
+    col_spacing_km: float = COL_SPACING_M / 1000.0
+    power_factor: float = POWER_FACTOR
+    intra_array_voltage_v: float = INTRA_ARRAY_VOLTAGE_V
+    inter_array_voltage_v: float = INTER_ARRAY_VOLTAGE_V
+    fcr: float = FCR
+    opex_rate: float = OPEX_RATE
+    wake_loss_factor: float = WAKE_LOSS_FACTOR
+
+    @property
+    def turbines_per_array(self) -> int:
+        return self.rows * self.cols
+
+
+DEFAULT_CONFIG = ProjectConfig()

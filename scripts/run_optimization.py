@@ -25,10 +25,7 @@ from tidal_portfolio import (
     run_portfolio_optimization, get_best_result, load_turbine, load_site_results,
     save_optimization_results,
 )
-from tidal_portfolio.config import (
-    TURBINES_PER_ARRAY, WAKE_LOSS_FACTOR, FCR,
-    get_region_paths,
-)
+from tidal_portfolio.config import ProjectConfig, get_region_paths
 from tidal_portfolio.visualization import plot_all
 
 # =============================================================================
@@ -60,6 +57,9 @@ CLUSTER_RADIUS_KM = 20.0
 
 # Current mode: "total" (all currents) or "tidal" (tidal-only via UTide)
 CURRENT_MODE = "tidal"
+
+# Project configuration (all engineering defaults; override as needed)
+CONFIG = ProjectConfig()
 
 # =============================================================================
 # MAIN EXECUTION
@@ -110,10 +110,10 @@ def main():
     print("\n[2/5] Configuration...")
     print(f"      Turbine:           {turbine['name']}")
     print(f"      Rated power:       {turbine['rated_power_mw']} MW")
-    print(f"      Turbines/array:    {TURBINES_PER_ARRAY}")
-    print(f"      Array capacity:    {TURBINES_PER_ARRAY * turbine['rated_power_mw']:.1f} MW")
-    print(f"      Wake loss factor:  {WAKE_LOSS_FACTOR:.0%}")
-    print(f"      FCR:               {FCR:.1%}")
+    print(f"      Turbines/array:    {CONFIG.turbines_per_array}")
+    print(f"      Array capacity:    {CONFIG.turbines_per_array * turbine['rated_power_mw']:.1f} MW")
+    print(f"      Wake loss factor:  {CONFIG.wake_loss_factor:.0%}")
+    print(f"      FCR:               {CONFIG.fcr:.1%}")
 
     # -------------------------------------------------------------------------
     # Step 3: Run Optimization
@@ -131,6 +131,7 @@ def main():
         rated_power_mw=turbine["rated_power_mw"],
         cluster_radius_km=CLUSTER_RADIUS_KM,
         current_mode=CURRENT_MODE,
+        config=CONFIG,
         verbose=True,
     )
 

@@ -135,9 +135,7 @@ def calculate_string_cable_cost(num_turbines, turbine_power_mw,
 # MAIN COST FUNCTIONS
 # =============================================================================
 
-def calculate_intra_array_cost(rows, cols, turbine_power_mw,
-                                power_factor, row_spacing_km,
-                                col_spacing_km, voltage_v, fcr):
+def calculate_intra_array_cost(config, turbine_power_mw):
     """
     Calculate total intra-array cable and transformer costs for one array.
 
@@ -153,18 +151,21 @@ def calculate_intra_array_cost(rows, cols, turbine_power_mw,
     - Row cables connect each string's end to the collection point
 
     Args:
-        rows: Number of rows/strings in array
-        cols: Number of turbines per string
+        config: ProjectConfig with rows, cols, power_factor, row_spacing_km,
+            col_spacing_km, intra_array_voltage_v, fcr
         turbine_power_mw: Power per turbine in MW
-        power_factor: Power factor
-        row_spacing_km: Spacing between rows in km
-        col_spacing_km: Spacing between columns in km
-        voltage_v: Intra-array voltage in volts
-        fcr: Fixed Charge Rate for annualization
 
     Returns:
         dict with cable costs, transformer costs, and totals
     """
+    rows = config.rows
+    cols = config.cols
+    power_factor = config.power_factor
+    row_spacing_km = config.row_spacing_km
+    col_spacing_km = config.col_spacing_km
+    voltage_v = config.intra_array_voltage_v
+    fcr = config.fcr
+
     num_turbines = rows * cols
     turbine_mva = calculate_mva(turbine_power_mw, power_factor)
 
@@ -264,36 +265,19 @@ def calculate_intra_array_cost(rows, cols, turbine_power_mw,
     }
 
 
-def calculate_intra_array_cost_for_arrays(num_arrays, rows, cols,
-                                           turbine_power_mw, power_factor,
-                                           row_spacing_km, col_spacing_km,
-                                           voltage_v, fcr):
+def calculate_intra_array_cost_for_arrays(num_arrays, config, turbine_power_mw):
     """
     Calculate total intra-array costs for multiple arrays.
 
     Args:
         num_arrays: Number of arrays
-        rows: Number of rows/strings per array
-        cols: Number of turbines per string
+        config: ProjectConfig with array layout and electrical parameters
         turbine_power_mw: Power per turbine in MW
-        power_factor: Power factor
-        row_spacing_km: Spacing between rows in km
-        col_spacing_km: Spacing between columns in km
-        voltage_v: Intra-array voltage in volts
-        fcr: Fixed Charge Rate for annualization
 
     Returns:
         dict with total costs for all arrays
     """
-    single = calculate_intra_array_cost(
-        rows=rows, cols=cols,
-        turbine_power_mw=turbine_power_mw,
-        power_factor=power_factor,
-        row_spacing_km=row_spacing_km,
-        col_spacing_km=col_spacing_km,
-        voltage_v=voltage_v,
-        fcr=fcr,
-    )
+    single = calculate_intra_array_cost(config, turbine_power_mw)
 
     return {
         'num_arrays': num_arrays,

@@ -12,17 +12,19 @@ Modules:
 
 Example:
     from tidal_portfolio import load_turbine, run_portfolio_optimization, get_best_result
+    from tidal_portfolio.config import ProjectConfig
 
     # Load turbine spec
     turbine = load_turbine("RM1")
 
     # Run optimization (site_data from load_all → flatten → process_sites)
-    # Engineering constants default from config.py; only pass what varies per run.
+    config = ProjectConfig()  # all defaults, or override: ProjectConfig(fcr=0.10)
     results = run_portfolio_optimization(
         site_data=site_data,
         num_arrays=3,
         lcoe_targets=[700, 750, 800],
         rated_power_mw=turbine["rated_power_mw"],
+        config=config,
     )
 
     # Get best result
@@ -33,6 +35,9 @@ Example:
 
 __version__ = "4.0.0"
 __author__ = "Tidal Energy Project"
+
+# Configuration
+from .config import ProjectConfig
 
 # Turbine loading
 from .site_processing.turbine import load_turbine
@@ -82,6 +87,8 @@ from .visualization import (
 )
 
 __all__ = [
+    # Configuration
+    "ProjectConfig",
     # Turbine loading
     "load_turbine",
     # Main optimization functions

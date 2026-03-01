@@ -51,8 +51,8 @@ def calculate_substation_transformer_cost(mva, voltage_v):
 # MAIN COST FUNCTIONS
 # =============================================================================
 
-def calculate_inter_array_cost(distance_km, array_power_mw, voltage_v,
-                                power_factor, fcr, include_transformer=True,
+def calculate_inter_array_cost(distance_km, array_power_mw, config,
+                                include_transformer=True,
                                 substation_ancillary_cost=SUBSTATION_ANCILLARY_COST):
     """
     Calculate inter-array cost for a single array-to-collection-point link.
@@ -66,9 +66,7 @@ def calculate_inter_array_cost(distance_km, array_power_mw, voltage_v,
     Args:
         distance_km: Distance from array to collection point (km)
         array_power_mw: Power per array in MW
-        voltage_v: Inter-array cable voltage in volts
-        power_factor: Power factor
-        fcr: Fixed Charge Rate
+        config: ProjectConfig with inter_array_voltage_v, power_factor, fcr
         include_transformer: Include array substation transformer cost (default: True)
         substation_ancillary_cost: Ancillary cost per substation in $
             (default: SUBSTATION_ANCILLARY_COST from coefficients)
@@ -76,6 +74,10 @@ def calculate_inter_array_cost(distance_km, array_power_mw, voltage_v,
     Returns:
         dict with cable, transformer, substation ancillary, and total costs
     """
+    voltage_v = config.inter_array_voltage_v
+    power_factor = config.power_factor
+    fcr = config.fcr
+
     array_mva = calculate_mva(array_power_mw, power_factor)
     current_a = calculate_current(array_mva, voltage_v)
 

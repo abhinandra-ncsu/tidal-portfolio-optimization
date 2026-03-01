@@ -12,7 +12,7 @@ diversification benefits when combined in a portfolio.
 import numpy as np
 
 
-def calculate_covariance(power_timeseries, turbines_per_array, wake_loss_factor, scaled=True):
+def calculate_covariance(power_timeseries, config, scaled=True):
     """
     Calculate covariance matrix from power timeseries.
 
@@ -27,8 +27,7 @@ def calculate_covariance(power_timeseries, turbines_per_array, wake_loss_factor,
 
     Args:
         power_timeseries: Power output timeseries (n_sites × n_timesteps) in MW
-        turbines_per_array: Turbines per array for scaling
-        wake_loss_factor: Wake loss factor for scaling (e.g., 0.88 = 12% loss)
+        config: ProjectConfig with turbines_per_array and wake_loss_factor
         scaled: If True, scale for array-level output (default: True)
 
     Returns:
@@ -58,7 +57,7 @@ def calculate_covariance(power_timeseries, turbines_per_array, wake_loss_factor,
 
     # Scale for array-level if requested
     if scaled:
-        scale = turbines_per_array * wake_loss_factor
+        scale = config.turbines_per_array * config.wake_loss_factor
         cov_matrix = cov_matrix * (scale ** 2)
 
     return {

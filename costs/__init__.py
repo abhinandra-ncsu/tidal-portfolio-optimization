@@ -13,21 +13,18 @@ Main functions:
     - calculate_intra_array_cost: Within-array cables
 
 Example:
+    from tidal_portfolio.config import ProjectConfig
     from tidal_portfolio.costs import calculate_total_cost
 
+    config = ProjectConfig()  # or override: ProjectConfig(fcr=0.10)
     costs = calculate_total_cost(
         num_arrays=3,
         inter_array_distances_km=[8.0, 10.0, 12.0],
         shore_distance_km=70.0,
-        turbines_per_array=40,
         rated_power_mw=1.1,
-        fcr=0.113,
-        rows=5, cols=8,
-        power_factor=0.95,
-        row_spacing_km=0.300, col_spacing_km=0.080,
-        intra_array_voltage_v=11000, inter_array_voltage_v=66000,
         array_power_mw=44.0,
-        capacity_factor=0.35, opex_rate=0.025,
+        capacity_factor=0.35,
+        config=config,
     )
     print(f"Total annual cost: ${costs['total_cost']:,.0f}/year")
 """

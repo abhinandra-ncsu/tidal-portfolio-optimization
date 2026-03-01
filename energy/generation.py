@@ -63,7 +63,7 @@ def calculate_capacity_factor(power_timeseries, rated_power_mw):
     return np.mean(power_timeseries) / rated_power_mw
 
 
-def calculate_energy_vector(capacity_factors, rated_power_mw, turbines_per_array, wake_loss_factor):
+def calculate_energy_vector(capacity_factors, rated_power_mw, config):
     """
     Calculate net annual energy for one or more sites (vectorized).
 
@@ -74,12 +74,11 @@ def calculate_energy_vector(capacity_factors, rated_power_mw, turbines_per_array
     Args:
         capacity_factors: Capacity factor(s) (0-1 scale), scalar or array
         rated_power_mw: Turbine rated power in MW
-        turbines_per_array: Number of turbines per array
-        wake_loss_factor: Wake loss multiplier (e.g., 0.88 = 12% loss)
+        config: ProjectConfig with turbines_per_array and wake_loss_factor
 
     Returns:
         Net annual energy in MWh (scalar or array matching input)
     """
     capacity_factors = np.asarray(capacity_factors)
-    gross = turbines_per_array * rated_power_mw * capacity_factors * HOURS_PER_YEAR
-    return gross * wake_loss_factor
+    gross = config.turbines_per_array * rated_power_mw * capacity_factors * HOURS_PER_YEAR
+    return gross * config.wake_loss_factor
