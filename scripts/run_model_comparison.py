@@ -27,20 +27,17 @@ from tidal_portfolio import (
 )
 from tidal_portfolio.config import ProjectConfig, get_region_paths
 
+from config import (
+    REGION, TURBINE_NAME, CURRENT_MODE,
+    NUM_ARRAYS, LCOE_TARGETS, CLUSTER_RADIUS_KM,
+)
+
 # =============================================================================
-# CONFIGURATION
+# CONFIGURATION - Modify shared params in scripts/config.py
 # =============================================================================
 
-REGION = "North_Carolina"
 _region = get_region_paths(REGION)
-
-TURBINE_NAME = "RM1"
 INPUT_NPZ = Path(_region["pipeline_results_dir"]) / f"{TURBINE_NAME}_energy_pipeline_results.npz"
-
-NUM_ARRAYS = 3
-LCOE_TARGETS = [650, 700, 800, 900, 1000]
-CLUSTER_RADIUS_KM = 20.0
-CURRENT_MODE = "tidal"
 CONFIG = ProjectConfig()
 
 

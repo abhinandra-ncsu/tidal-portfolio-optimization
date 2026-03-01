@@ -27,21 +27,18 @@ sys.path.insert(0, str(ROOT_DIR.parent))
 from tidal_portfolio.config import HOURS_PER_YEAR, get_region_paths
 from tidal_portfolio.site_processing import load_site_results
 
-# =============================================================================
-# CONFIGURATION
-# =============================================================================
+from config import REGION, TURBINE_NAME
 
-# Region name — must match a folder under data/regions/
-REGION = "North_Carolina"
+# =============================================================================
+# CONFIGURATION - Modify shared params in scripts/config.py
+# =============================================================================
 
 # Resolve all data paths for this region
 _region = get_region_paths(REGION)
 SHORELINE_PATH = _region["shoreline_path"]
 
 # Input: pipeline results saved by run_energy_pipeline.py
-# Filename includes turbine name, e.g. "RM1-GS_energy_pipeline_results.npz"
 INPUT_DIR = Path(_region["pipeline_results_dir"])
-TURBINE_NAME = "RM1"
 INPUT_FILENAME = f"{TURBINE_NAME}_energy_pipeline_results.npz"
 
 # Output: where to save plot images (under outputs/<region>/)
@@ -100,7 +97,7 @@ def plot_capacity_factor_histogram(processed, save_path=None):
     plt.show()
 
 
-def plot_spatial_capacity_factors(processed, save_path=None):
+def plot_spatial_capacity_factors(processed, save_path=None, shoreline_path=None):
     """
     Plot spatial map of capacity factors (lon/lat scatter, colored by CF)
     with the shoreline overlaid for geographic context.
@@ -108,8 +105,12 @@ def plot_spatial_capacity_factors(processed, save_path=None):
     Args:
         processed: Dict with site data.
         save_path: Optional path to save the figure.
+        shoreline_path: Path to shoreline shapefile. Defaults to module-level SHORELINE_PATH.
     """
     import matplotlib.pyplot as plt
+
+    if shoreline_path is None:
+        shoreline_path = SHORELINE_PATH
 
     lats = processed["latitudes"]
     lons = processed["longitudes"]
@@ -121,7 +122,7 @@ def plot_spatial_capacity_factors(processed, save_path=None):
     try:
         import geopandas as gpd
 
-        shoreline_path = Path(SHORELINE_PATH)
+        shoreline_path = Path(shoreline_path)
         if shoreline_path.exists():
             shoreline = gpd.read_file(shoreline_path)
             shoreline.plot(

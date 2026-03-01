@@ -22,41 +22,32 @@ ROOT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_DIR.parent))
 
 from tidal_portfolio import (
-    run_portfolio_optimization, get_best_result, load_turbine, load_site_results,
+    run_portfolio_optimization,
+    get_best_result,
+    load_turbine,
+    load_site_results,
     save_optimization_results,
 )
 from tidal_portfolio.config import ProjectConfig, get_region_paths
 from tidal_portfolio.visualization import plot_all
 
-# =============================================================================
-# CONFIGURATION - Modify these parameters as needed
-# =============================================================================
+from config import (
+    REGION, TURBINE_NAME, CURRENT_MODE,
+    NUM_ARRAYS, LCOE_TARGETS, CLUSTER_RADIUS_KM,
+)
 
-# Region name — must match a folder under data/regions/
-REGION = "North_Carolina"
+# =============================================================================
+# CONFIGURATION - Modify shared params in scripts/config.py
+# =============================================================================
 
 # Resolve all data paths for this region
 _region = get_region_paths(REGION)
 
-# Turbine model — must match a DEVICE name in data/turbine_specifications.csv
-# Available: RM1, RM1-GS, MCT SeaGen, Sabella D10/D15, Atlantis AR1000/AR2000, etc.
-TURBINE_NAME = "RM1"
-
 # Input: pre-computed pipeline results from run_energy_pipeline.py
-INPUT_NPZ = Path(_region["pipeline_results_dir"]) / f"{TURBINE_NAME}_energy_pipeline_results.npz"
-
-# Number of arrays to deploy
-NUM_ARRAYS = 3
-
-# LCOE targets to test ($/MWh)
-# Note: Tidal energy LCOE is typically $1000-2000+/MWh at current tech levels
-LCOE_TARGETS = [650, 700, 800, 900, 1000]
-
-# Maximum distance from collection point (km)
-CLUSTER_RADIUS_KM = 20.0
-
-# Current mode: "total" (all currents) or "tidal" (tidal-only via UTide)
-CURRENT_MODE = "tidal"
+INPUT_NPZ = (
+    Path(_region["pipeline_results_dir"])
+    / f"{TURBINE_NAME}_energy_pipeline_results.npz"
+)
 
 # Project configuration (all engineering defaults; override as needed)
 CONFIG = ProjectConfig()
@@ -82,7 +73,8 @@ def main():
 
     try:
         site_data, npz_config = load_site_results(
-            INPUT_NPZ, require_tidal=(CURRENT_MODE == "tidal"),
+            INPUT_NPZ,
+            require_tidal=(CURRENT_MODE == "tidal"),
         )
     except FileNotFoundError as e:
         print(f"\nError: {e}")
@@ -101,8 +93,10 @@ def main():
         )
 
     print(f"      Loaded {site_data['n_sites']} feasible sites")
-    print(f"      Turbine (from .npz): {npz_config['turbine_name']}, "
-          f"{npz_config['rated_power_mw']} MW rated")
+    print(
+        f"      Turbine (from .npz): {npz_config['turbine_name']}, "
+        f"{npz_config['rated_power_mw']} MW rated"
+    )
 
     # -------------------------------------------------------------------------
     # Step 2: Display Configuration
@@ -111,7 +105,9 @@ def main():
     print(f"      Turbine:           {turbine['name']}")
     print(f"      Rated power:       {turbine['rated_power_mw']} MW")
     print(f"      Turbines/array:    {CONFIG.turbines_per_array}")
-    print(f"      Array capacity:    {CONFIG.turbines_per_array * turbine['rated_power_mw']:.1f} MW")
+    print(
+        f"      Array capacity:    {CONFIG.turbines_per_array * turbine['rated_power_mw']:.1f} MW"
+    )
     print(f"      Wake loss factor:  {CONFIG.wake_loss_factor:.0%}")
     print(f"      FCR:               {CONFIG.fcr:.1%}")
 
@@ -152,26 +148,34 @@ def main():
     print("-" * 70)
 
     for result in results["results"]:
-        if result['feasible']:
+        if result["feasible"]:
             print(f"\n  LCOE Target: ${result['lcoe_target']:.0f}/MWh  [FEASIBLE]")
             print(f"    Achieved LCOE:      ${result['lcoe']:.0f}/MWh")
             print(f"    Portfolio Variance: {result['variance']:.2f} MW^2")
             print(f"    Total Energy:       {result['total_energy']:,.0f} MWh/year")
             print(f"    Total Cost:         ${result['total_cost']:,.0f}/year")
             print(f"    Transmission Mode:  {result['transmission_mode']}")
-            cp = result['collection_point']
+            cp = result["collection_point"]
             cp_lat = site_data["latitudes"][cp]
             cp_lon = site_data["longitudes"][cp]
             print(f"    Collection Point:   ({cp_lat:.4f}, {cp_lon:.4f})")
-            print(f"    Selected Sites:"  )
-            for si in result['selected_sites']:
-                print(f"      ({site_data['latitudes'][si]:.4f}, {site_data['longitudes'][si]:.4f})")
+            print(f"    Selected Sites:")
+            for si in result["selected_sites"]:
+                print(
+                    f"      ({site_data['latitudes'][si]:.4f}, {site_data['longitudes'][si]:.4f})"
+                )
 
             # Cost breakdown
             print(f"    Cost Breakdown:")
-            print(f"      - Fixed:          ${result['cost_breakdown']['fixed']:,.0f}/year")
-            print(f"      - Inter-array:    ${result['cost_breakdown']['inter_array']:,.0f}/year")
-            print(f"      - Transmission:   ${result['cost_breakdown']['transmission']:,.0f}/year")
+            print(
+                f"      - Fixed:          ${result['cost_breakdown']['fixed']:,.0f}/year"
+            )
+            print(
+                f"      - Inter-array:    ${result['cost_breakdown']['inter_array']:,.0f}/year"
+            )
+            print(
+                f"      - Transmission:   ${result['cost_breakdown']['transmission']:,.0f}/year"
+            )
         else:
             print(f"\n  LCOE Target: ${result['lcoe_target']:.0f}/MWh  [INFEASIBLE]")
 
@@ -186,7 +190,7 @@ def main():
         print(f"  Total Energy:      {best['total_energy']:,.0f} MWh/year")
         print(f"  Total Cost:        ${best['total_cost']:,.0f}/year")
         print(f"\n  Selected Sites:")
-        for i, site_idx in enumerate(best['selected_sites']):
+        for i, site_idx in enumerate(best["selected_sites"]):
             lat = site_data["latitudes"][site_idx]
             lon = site_data["longitudes"][site_idx]
             cf = site_data["capacity_factors"][site_idx]
@@ -232,5 +236,9 @@ if __name__ == "__main__":
     if response != "n":
         # Optional: save plots to a directory
         save_dir = Path(_region["plots_dir"]) / "optimization"
-        plot_all(site_data, results, save_dir=str(save_dir),
-                shoreline_path=_region.get("shoreline_path"))
+        plot_all(
+            site_data,
+            results,
+            save_dir=str(save_dir),
+            shoreline_path=_region.get("shoreline_path"),
+        )

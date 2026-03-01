@@ -33,12 +33,11 @@ from tidal_portfolio import load_turbine
 from tidal_portfolio.site_processing import load_all, flatten_grid_data, process_sites
 from tidal_portfolio.config import get_region_paths
 
-# =============================================================================
-# CONFIGURATION - Modify these parameters as needed
-# =============================================================================
+from config import REGION, TURBINE_NAME, CURRENT_MODE
 
-# Region name — must match a folder under data/regions/
-REGION = "North_Carolina"
+# =============================================================================
+# CONFIGURATION - Modify shared params in scripts/config.py
+# =============================================================================
 
 # Resolve all data paths for this region
 _region = get_region_paths(REGION)
@@ -47,14 +46,6 @@ GEBCO_PATH = _region["gebco_path"]
 SHORELINE_PATH = _region["shoreline_path"]
 UTIDE_INPUT_DIR = _region["utide_input_dir"]
 UTIDE_OUTPUT_DIR = _region["utide_output_dir"]
-
-# Turbine name (must match a DEVICE in data/turbine_specifications.csv)
-#
-# "RM1"    — DOE Reference Model 1, designed for fast tidal channels (rated 2.0 m/s)
-# "RM1-GS" — RM1 variant re-parameterized for Gulf Stream ocean currents (rated 1.2 m/s)
-#             See writing/design_notes/rm1_gs_derivation.md for full derivation.
-#
-TURBINE_NAME = "RM1"
 
 # Pipeline parameters
 # HYCOM extraction depth: rotor center sits at 1D below surface (43 m for RM1-GS).
@@ -74,11 +65,6 @@ MIN_DIST_SHORE_KM = 1.0  # Avoid land-contaminated coastal cells
 MAX_DIST_SHORE_KM = 200.0
 MIN_MEAN_SPEED_MS = 0.0  # CF filter handles speed screening
 MIN_CAPACITY_FACTOR = 0.05
-
-# Current mode: "total" (all currents) or "tidal" (tidal-only via UTide)
-# When "tidal", both total and tidal results are computed and saved side-by-side.
-# If UTide output is not yet available, prepares .mat input and exits for MATLAB.
-CURRENT_MODE = "tidal"
 
 # Output directory for pipeline results (under outputs/<region>/)
 OUTPUT_DIR = Path(_region["pipeline_results_dir"])
@@ -384,4 +370,16 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raw_data, flat, processed, turbine = main()
+
+    print("\nGenerate pipeline visualization plots? [Y/n]: ", end="")
+    response = input().strip().lower()
+    if response != "n":
+        from visualize_energy_pipeline import generate_all_plots
+
+        save_dir = str(Path(_region["plots_dir"]) / "energy_pipeline")
+        npz_config = {
+            "turbine_name": turbine["name"],
+            "rated_power_mw": turbine["rated_power_mw"],
+        }
+        generate_all_plots(processed, npz_config, save_dir=save_dir)
