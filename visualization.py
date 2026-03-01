@@ -236,7 +236,8 @@ def plot_cost_breakdown(results: List[Dict], save_path: Optional[str] = None):
     ax.set_title('Cost Breakdown by LCOE Target', fontsize=14, fontweight='bold')
     ax.set_xticks(x)
     ax.set_xticklabels(lcoe_targets)
-    ax.legend(loc='upper right')
+    ax.legend(loc='upper left', bbox_to_anchor=(0.0, -0.1), ncol=3,
+              fontsize=10, frameon=True)
 
     # Add total cost labels on top of bars
     for i, r in enumerate(feasible):
@@ -245,7 +246,7 @@ def plot_cost_breakdown(results: List[Dict], save_path: Optional[str] = None):
                     ha='center', fontsize=9, fontweight='bold')
 
     ax.grid(True, alpha=0.3, axis='y')
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0.08, 1, 1])
 
     if save_path:
         plt.savefig(save_path, dpi=150, bbox_inches='tight')
@@ -280,7 +281,7 @@ def plot_correlation_evolution(site_data: Dict, results: List[Dict],
     power_ts = site_data['power_timeseries']  # (n_sites, n_timesteps)
     n_panels = len(feasible)
 
-    fig, axes = plt.subplots(1, n_panels, figsize=(5 * n_panels, 5),
+    fig, axes = plt.subplots(1, n_panels, figsize=(5 * n_panels, 5.5),
                              squeeze=False)
     axes = axes[0]
 
@@ -310,13 +311,14 @@ def plot_correlation_evolution(site_data: Dict, results: List[Dict],
                      fontsize=10, fontweight='bold')
 
     fig.suptitle('Correlation Evolution Across LCOE Targets',
-                 fontsize=14, fontweight='bold', y=1.02)
+                 fontsize=14, fontweight='bold')
 
-    # Shared colorbar
-    fig.colorbar(im, ax=axes, label='Pearson Correlation',
-                 fraction=0.02, pad=0.04)
+    # Shared colorbar placed horizontally below the panels
+    cbar_ax = fig.add_axes([0.15, -0.02, 0.7, 0.025])
+    fig.colorbar(im, cax=cbar_ax, orientation='horizontal',
+                 label='Pearson Correlation')
 
-    plt.tight_layout()
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 
     if save_path:
         plt.savefig(save_path, dpi=150, bbox_inches='tight')
@@ -367,7 +369,7 @@ def plot_site_robustness_map(site_data: Dict, results: List[Dict],
     # Never-selected sites: small, faded
     never_mask = freq == 0
     ax.scatter(lons[never_mask], lats[never_mask],
-               c=cfs[never_mask], cmap='viridis',
+               c=cfs[never_mask], cmap='Blues',
                s=15, alpha=0.3, edgecolors='none',
                vmin=0, vmax=cfs.max(), zorder=2)
 
@@ -376,7 +378,7 @@ def plot_site_robustness_map(site_data: Dict, results: List[Dict],
     sel_sizes = 60 + 200 * (freq[sel_mask] / max_freq)  # range ~60–260
 
     scatter = ax.scatter(lons[sel_mask], lats[sel_mask],
-                         c=cfs[sel_mask], cmap='viridis',
+                         c=cfs[sel_mask], cmap='Blues',
                          s=sel_sizes, alpha=0.8,
                          edgecolors='black', linewidth=1,
                          vmin=0, vmax=cfs.max(), zorder=4)
