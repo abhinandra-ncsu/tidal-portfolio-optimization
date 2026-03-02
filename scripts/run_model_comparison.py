@@ -63,7 +63,7 @@ def print_model_comparison(loaded, num_arrays):
             else:
                 # Merge in fields from the single result for enumeration models
                 result_entry = data["results"][0] if data["results"] else {}
-                merged = {**result_entry, **best, "feasible": True}
+                merged = {**best, **result_entry, "feasible": True}
                 models.append((display_name, merged))
 
     print("\n" + "=" * 80)
@@ -206,8 +206,10 @@ if __name__ == "__main__":
         if data is not None:
             best = data.get("best_result")
             if best is not None:
-                result_entry = data["results"][0] if data["results"] else {}
-                merged = {**result_entry, **best, "feasible": True}
+                # Find the full feasible result entry (has cost_breakdown etc.)
+                feasible = [r for r in data["results"] if r.get("feasible")]
+                result_entry = feasible[0] if feasible else {}
+                merged = {**best, **result_entry, "feasible": True}
                 model_results[display_name] = merged
             else:
                 model_results[display_name] = None

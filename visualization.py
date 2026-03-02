@@ -1011,7 +1011,7 @@ def plot_comparison_pareto_overlay(loaded: List, save_path: Optional[str] = None
             lcoes = [r['lcoe'] for r in feasible_sorted]
             targets = [r.get('lcoe_target', 0) for r in feasible_sorted]
 
-            scatter = ax.scatter(variances, lcoes, c=targets, cmap='viridis',
+            scatter = ax.scatter(variances, lcoes, c=targets, cmap='RdYlGn_r',
                                  s=80, edgecolors='black', linewidth=1,
                                  zorder=4)
             ax.plot(variances, lcoes, '--', color='gray', linewidth=1.5,
