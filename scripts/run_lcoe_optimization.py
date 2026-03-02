@@ -34,7 +34,7 @@ from config import (
 # CONFIGURATION
 # =============================================================================
 
-_region = get_region_paths(REGION)
+_region = get_region_paths(REGION, CURRENT_MODE)
 INPUT_NPZ = (
     Path(_region["pipeline_results_dir"])
     / f"{TURBINE_NAME}_energy_pipeline_results.npz"
@@ -116,7 +116,7 @@ def main():
 
     # Save
     print(f"\n[4/4] Saving results...")
-    save_dir = Path(_region["output_dir"]) / "optimization"
+    save_dir = Path(_region["mode_output_dir"]) / "optimization"
     save_optimization_results(
         results=results,
         site_data=site_data,

@@ -45,30 +45,43 @@ def _find_first_file(directory, extension):
     return str(directory / f"*.{extension}")  # fallback pattern for error messages
 
 
-def get_region_paths(region_name=None):
+def get_region_paths(region_name=None, current_mode=None):
     """
     Return a dict of all data and output paths for a given region.
 
     Input data lives under ``data/regions/<region>/``, while generated
     outputs (pipeline results, plots) live under ``outputs/<region>/``.
 
+    When *current_mode* is provided (``"tidal"`` or ``"total"``), the
+    mode-dependent output directories (pipeline_results, optimization,
+    plots) are nested under ``outputs/<region>/<mode>/`` so that results
+    from different modes coexist without overwriting each other.  UTide
+    paths remain mode-independent (always under ``outputs/<region>/``).
+
     Parameters
     ----------
     region_name : str or None
         Name of the region folder under ``data/regions/``.
         Defaults to ``DEFAULT_REGION`` ("North_Carolina").
+    current_mode : str or None
+        ``"tidal"`` or ``"total"``.  When *None*, mode-dependent paths
+        fall back to the region output root (legacy behaviour).
 
     Returns
     -------
     dict
         Input paths: region_name, region_dir, hycom_pattern, gebco_path,
         shoreline_path.
-        Output paths: output_dir, utide_input_dir, utide_output_dir,
-        pipeline_results_dir, plots_dir.
+        Output paths: output_dir, mode_output_dir, utide_input_dir,
+        utide_output_dir, pipeline_results_dir, plots_dir.
     """
     region = region_name or DEFAULT_REGION
     region_dir = REGIONS_DIR / region
     output_dir = OUTPUTS_DIR / region
+
+    # Mode-dependent base: outputs/<region>/<mode>/
+    mode_output_dir = output_dir / current_mode if current_mode else output_dir
+
     return {
         # Input data paths
         "region_name": region,
@@ -76,12 +89,14 @@ def get_region_paths(region_name=None):
         "hycom_pattern": str(region_dir / "hycom" / "*.nc"),
         "gebco_path": _find_first_file(region_dir / "gebco", "nc"),
         "shoreline_path": _find_first_file(region_dir / "shapefiles", "shp"),
-        # Output paths
+        # Output paths (mode-independent)
         "output_dir": str(output_dir),
         "utide_input_dir": str(output_dir / "utide_input"),
         "utide_output_dir": str(output_dir / "utide_output"),
-        "pipeline_results_dir": str(output_dir / "pipeline_results"),
-        "plots_dir": str(output_dir / "plots"),
+        # Output paths (mode-dependent)
+        "mode_output_dir": str(mode_output_dir),
+        "pipeline_results_dir": str(mode_output_dir / "pipeline_results"),
+        "plots_dir": str(mode_output_dir / "plots"),
     }
 
 

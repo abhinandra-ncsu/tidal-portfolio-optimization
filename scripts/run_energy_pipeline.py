@@ -40,7 +40,7 @@ from config import REGION, TURBINE_NAME, CURRENT_MODE
 # =============================================================================
 
 # Resolve all data paths for this region
-_region = get_region_paths(REGION)
+_region = get_region_paths(REGION, CURRENT_MODE)
 HYCOM_PATTERN = _region["hycom_pattern"]
 GEBCO_PATH = _region["gebco_path"]
 SHORELINE_PATH = _region["shoreline_path"]

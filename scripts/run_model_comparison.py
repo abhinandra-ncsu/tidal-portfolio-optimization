@@ -23,14 +23,14 @@ sys.path.insert(0, str(ROOT_DIR.parent))
 from tidal_portfolio import load_optimization_results
 from tidal_portfolio.config import get_region_paths
 
-from config import REGION, TURBINE_NAME, NUM_ARRAYS
+from config import REGION, TURBINE_NAME, NUM_ARRAYS, CURRENT_MODE
 
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
 
-_region = get_region_paths(REGION)
-RESULTS_DIR = Path(_region["output_dir"]) / "optimization"
+_region = get_region_paths(REGION, CURRENT_MODE)
+RESULTS_DIR = Path(_region["mode_output_dir"]) / "optimization"
 
 MODEL_NAMES = [
     ("Min-Variance", "min_variance"),

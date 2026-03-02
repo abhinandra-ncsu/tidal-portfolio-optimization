@@ -27,14 +27,14 @@ sys.path.insert(0, str(ROOT_DIR.parent))
 from tidal_portfolio.config import HOURS_PER_YEAR, get_region_paths
 from tidal_portfolio.site_processing import load_site_results
 
-from config import REGION, TURBINE_NAME
+from config import REGION, TURBINE_NAME, CURRENT_MODE
 
 # =============================================================================
 # CONFIGURATION - Modify shared params in scripts/config.py
 # =============================================================================
 
 # Resolve all data paths for this region
-_region = get_region_paths(REGION)
+_region = get_region_paths(REGION, CURRENT_MODE)
 SHORELINE_PATH = _region["shoreline_path"]
 
 # Input: pipeline results saved by run_energy_pipeline.py

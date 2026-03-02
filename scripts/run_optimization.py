@@ -41,7 +41,7 @@ from config import (
 # =============================================================================
 
 # Resolve all data paths for this region
-_region = get_region_paths(REGION)
+_region = get_region_paths(REGION, CURRENT_MODE)
 
 # Input: pre-computed pipeline results from run_energy_pipeline.py
 INPUT_NPZ = (
@@ -206,7 +206,7 @@ def main():
     # Step 5: Save Results
     # -------------------------------------------------------------------------
     print(f"\n[5/5] Saving results...")
-    save_dir = Path(_region["output_dir"]) / "optimization"
+    save_dir = Path(_region["mode_output_dir"]) / "optimization"
     save_optimization_results(
         results=results,
         site_data=site_data,
