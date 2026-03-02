@@ -94,7 +94,7 @@ def plot_capacity_factor_histogram(processed, save_path=None):
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
         print(f"  Saved: {save_path}")
 
-    plt.show()
+    plt.close(fig)
 
 
 def plot_spatial_capacity_factors(processed, save_path=None, shoreline_path=None):
@@ -166,7 +166,7 @@ def plot_spatial_capacity_factors(processed, save_path=None, shoreline_path=None
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
         print(f"  Saved: {save_path}")
 
-    plt.show()
+    plt.close(fig)
 
 
 def plot_annual_energy_distribution(processed, config, save_path=None):
@@ -222,7 +222,7 @@ def plot_annual_energy_distribution(processed, config, save_path=None):
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
         print(f"  Saved: {save_path}")
 
-    plt.show()
+    plt.close(fig)
 
 
 # =============================================================================

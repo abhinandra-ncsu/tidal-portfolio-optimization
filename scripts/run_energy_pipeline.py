@@ -372,14 +372,11 @@ def main():
 if __name__ == "__main__":
     raw_data, flat, processed, turbine = main()
 
-    print("\nGenerate pipeline visualization plots? [Y/n]: ", end="")
-    response = input().strip().lower()
-    if response != "n":
-        from visualize_energy_pipeline import generate_all_plots
+    from visualize_energy_pipeline import generate_all_plots
 
-        save_dir = str(Path(_region["plots_dir"]) / "energy_pipeline")
-        npz_config = {
-            "turbine_name": turbine["name"],
-            "rated_power_mw": turbine["rated_power_mw"],
-        }
-        generate_all_plots(processed, npz_config, save_dir=save_dir)
+    save_dir = str(Path(_region["plots_dir"]) / "energy_pipeline")
+    npz_config = {
+        "turbine_name": turbine["name"],
+        "rated_power_mw": turbine["rated_power_mw"],
+    }
+    generate_all_plots(processed, npz_config, save_dir=save_dir)

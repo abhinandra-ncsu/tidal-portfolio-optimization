@@ -215,6 +215,7 @@ def main():
         output_dir=save_dir,
         turbine_name=TURBINE_NAME,
         region=REGION,
+        model="min_variance",
     )
 
     print("\n" + "=" * 70)
@@ -230,15 +231,10 @@ if __name__ == "__main__":
     # -------------------------------------------------------------------------
     # Generate Visualization Plots
     # -------------------------------------------------------------------------
-    print("\nGenerate visualization plots? [Y/n]: ", end="")
-    response = input().strip().lower()
-
-    if response != "n":
-        # Optional: save plots to a directory
-        save_dir = Path(_region["plots_dir"]) / "optimization"
-        plot_all(
-            site_data,
-            results,
-            save_dir=str(save_dir),
-            shoreline_path=_region.get("shoreline_path"),
-        )
+    save_dir = Path(_region["plots_dir"]) / "optimization"
+    plot_all(
+        site_data,
+        results,
+        save_dir=str(save_dir),
+        shoreline_path=_region.get("shoreline_path"),
+    )
