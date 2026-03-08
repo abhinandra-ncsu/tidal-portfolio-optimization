@@ -50,6 +50,7 @@ from .optimization import (
     calculate_distance_matrix,
     get_best_result,
     save_optimization_results,
+    load_optimization_results,
 )
 
 # Cost functions
@@ -100,6 +101,7 @@ __all__ = [
     "calculate_distance_matrix",
     "get_best_result",
     "save_optimization_results",
+    "load_optimization_results",
     # Cost functions
     "calculate_total_cost",
     "calculate_total_fixed_cost",

@@ -44,8 +44,8 @@ from .model import (
 # Enumeration-based models
 from .lcoe_model import run_lcoe_optimization, run_generation_optimization
 
-# Result saving
-from .save_results import save_optimization_results
+# Result saving / loading
+from .save_results import save_optimization_results, load_optimization_results
 
 __all__ = [
     # Main functions
@@ -64,6 +64,7 @@ __all__ = [
     # Enumeration-based models
     "run_lcoe_optimization",
     "run_generation_optimization",
-    # Result saving
+    # Result saving / loading
     "save_optimization_results",
+    "load_optimization_results",
 ]
