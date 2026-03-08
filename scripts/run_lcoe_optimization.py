@@ -109,7 +109,10 @@ def main():
         for i, si in enumerate(r["selected_sites"]):
             lat = site_data["latitudes"][si]
             lon = site_data["longitudes"][si]
-            cf = site_data["capacity_factors"][si]
+            if CURRENT_MODE == "tidal" and "tidal_capacity_factors" in site_data:
+                cf = site_data["tidal_capacity_factors"][si]
+            else:
+                cf = site_data["capacity_factors"][si]
             print(f"      Array {i+1}: ({lat:.4f}, {lon:.4f}) | CF={cf:.1%}")
     else:
         print("\n  No feasible solution found.")

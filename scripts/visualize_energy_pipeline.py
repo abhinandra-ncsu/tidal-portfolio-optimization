@@ -50,17 +50,24 @@ SAVE_DIR = Path(_region["plots_dir"]) / "energy_pipeline"
 # =============================================================================
 
 
-def plot_capacity_factor_histogram(processed, save_path=None):
+def plot_capacity_factor_histogram(processed, save_path=None, current_mode=None):
     """
     Plot capacity factor distribution with mean and median lines.
 
     Args:
         processed: Dict with site data.
         save_path: Optional path to save the figure.
+        current_mode: "tidal" or "total" — selects which capacity factors to plot.
     """
     import matplotlib.pyplot as plt
 
-    cfs = processed["capacity_factors"]
+    if current_mode == "tidal" and "tidal_capacity_factors" in processed:
+        cfs = processed["tidal_capacity_factors"]
+        cfs = cfs[~np.isnan(cfs)]
+        mode_label = "Tidal-Only"
+    else:
+        cfs = processed["capacity_factors"]
+        mode_label = "Total"
 
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.hist(cfs, bins=30, alpha=0.7, color="steelblue", edgecolor="black")
@@ -81,7 +88,7 @@ def plot_capacity_factor_histogram(processed, save_path=None):
     ax.set_xlabel("Capacity Factor", fontsize=12)
     ax.set_ylabel("Number of Sites", fontsize=12)
     ax.set_title(
-        f"Capacity Factor Distribution ({processed['n_sites']} sites)",
+        f"Capacity Factor Distribution — {mode_label} ({processed['n_sites']} sites)",
         fontsize=14,
         fontweight="bold",
     )
@@ -97,7 +104,7 @@ def plot_capacity_factor_histogram(processed, save_path=None):
     plt.close(fig)
 
 
-def plot_spatial_capacity_factors(processed, save_path=None, shoreline_path=None):
+def plot_spatial_capacity_factors(processed, save_path=None, shoreline_path=None, current_mode=None):
     """
     Plot spatial map of capacity factors (lon/lat scatter, colored by CF)
     with the shoreline overlaid for geographic context.
@@ -106,6 +113,7 @@ def plot_spatial_capacity_factors(processed, save_path=None, shoreline_path=None
         processed: Dict with site data.
         save_path: Optional path to save the figure.
         shoreline_path: Path to shoreline shapefile. Defaults to module-level SHORELINE_PATH.
+        current_mode: "tidal" or "total" — selects which capacity factors to plot.
     """
     import matplotlib.pyplot as plt
 
@@ -114,7 +122,13 @@ def plot_spatial_capacity_factors(processed, save_path=None, shoreline_path=None
 
     lats = processed["latitudes"]
     lons = processed["longitudes"]
-    cfs = processed["capacity_factors"]
+
+    if current_mode == "tidal" and "tidal_capacity_factors" in processed:
+        cfs = processed["tidal_capacity_factors"]
+        mode_label = "Tidal-Only"
+    else:
+        cfs = processed["capacity_factors"]
+        mode_label = "Total"
 
     fig, ax = plt.subplots(figsize=(12, 8))
 
@@ -154,7 +168,7 @@ def plot_spatial_capacity_factors(processed, save_path=None, shoreline_path=None
     ax.set_xlabel("Longitude (°)", fontsize=12)
     ax.set_ylabel("Latitude (°)", fontsize=12)
     ax.set_title(
-        f"Spatial Capacity Factors ({processed['n_sites']} sites)",
+        f"Spatial Capacity Factors — {mode_label} ({processed['n_sites']} sites)",
         fontsize=14,
         fontweight="bold",
     )
@@ -169,7 +183,7 @@ def plot_spatial_capacity_factors(processed, save_path=None, shoreline_path=None
     plt.close(fig)
 
 
-def plot_annual_energy_distribution(processed, config, save_path=None):
+def plot_annual_energy_distribution(processed, config, save_path=None, current_mode=None):
     """
     Plot histogram of per-turbine annual energy in MWh.
 
@@ -177,10 +191,17 @@ def plot_annual_energy_distribution(processed, config, save_path=None):
         processed: Dict with site data.
         config: Dict with turbine metadata.
         save_path: Optional path to save the figure.
+        current_mode: "tidal" or "total" — selects which capacity factors to plot.
     """
     import matplotlib.pyplot as plt
 
-    cfs = processed["capacity_factors"]
+    if current_mode == "tidal" and "tidal_capacity_factors" in processed:
+        cfs = processed["tidal_capacity_factors"]
+        cfs = cfs[~np.isnan(cfs)]
+        mode_label = "Tidal-Only"
+    else:
+        cfs = processed["capacity_factors"]
+        mode_label = "Total"
     rated_mw = config["rated_power_mw"]
     energy_mwh = cfs * rated_mw * HOURS_PER_YEAR
     n_sites = processed["n_sites"]
@@ -208,7 +229,7 @@ def plot_annual_energy_distribution(processed, config, save_path=None):
     ax.set_xlabel("Annual Energy per Turbine (MWh/year)", fontsize=12)
     ax.set_ylabel("Number of Sites", fontsize=12)
     ax.set_title(
-        f"Per-Turbine Annual Energy Distribution ({n_sites} sites)\n"
+        f"Per-Turbine Annual Energy Distribution — {mode_label} ({n_sites} sites)\n"
         f"{config['turbine_name']} — {config['rated_power_mw']} MW rated",
         fontsize=14,
         fontweight="bold",
@@ -230,14 +251,15 @@ def plot_annual_energy_distribution(processed, config, save_path=None):
 # =============================================================================
 
 
-def generate_all_plots(processed, config, save_dir=None):
+def generate_all_plots(processed, config, save_dir=None, current_mode=None):
     """
-    Generate all 4 site characterization plots.
+    Generate all 3 site characterization plots.
 
     Args:
         processed: Dict with site data.
         config: Dict with turbine metadata.
         save_dir: Optional directory to save all figures.
+        current_mode: "tidal" or "total" — selects which data to plot.
     """
     import os
 
@@ -251,17 +273,17 @@ def generate_all_plots(processed, config, save_dir=None):
     # 1. Capacity Factor Histogram
     print("\n[1/3] Capacity Factor Distribution...")
     save_path = f"{save_dir}/capacity_factor_histogram.png" if save_dir else None
-    plot_capacity_factor_histogram(processed, save_path)
+    plot_capacity_factor_histogram(processed, save_path, current_mode=current_mode)
 
     # 2. Spatial Capacity Factors
     print("\n[2/3] Spatial Capacity Factors...")
     save_path = f"{save_dir}/spatial_capacity_factors.png" if save_dir else None
-    plot_spatial_capacity_factors(processed, save_path)
+    plot_spatial_capacity_factors(processed, save_path, current_mode=current_mode)
 
     # 3. Per-Turbine Annual Energy Distribution
     print("\n[3/3] Per-Turbine Annual Energy Distribution...")
     save_path = f"{save_dir}/annual_energy_distribution.png" if save_dir else None
-    plot_annual_energy_distribution(processed, config, save_path)
+    plot_annual_energy_distribution(processed, config, save_path, current_mode=current_mode)
 
     print("\n" + "=" * 60)
     print("All plots generated!")
@@ -293,7 +315,7 @@ def main():
 
     # Generate all plots
     save_dir = str(SAVE_DIR)
-    generate_all_plots(processed, config, save_dir=save_dir)
+    generate_all_plots(processed, config, save_dir=save_dir, current_mode=CURRENT_MODE)
 
 
 if __name__ == "__main__":

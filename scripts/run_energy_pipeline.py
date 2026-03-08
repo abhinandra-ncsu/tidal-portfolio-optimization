@@ -379,4 +379,4 @@ if __name__ == "__main__":
         "turbine_name": turbine["name"],
         "rated_power_mw": turbine["rated_power_mw"],
     }
-    generate_all_plots(processed, npz_config, save_dir=save_dir)
+    generate_all_plots(processed, npz_config, save_dir=save_dir, current_mode=CURRENT_MODE)
