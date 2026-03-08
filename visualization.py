@@ -16,6 +16,13 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 
 
+def _active_cfs(site_data: Dict):
+    """Return tidal capacity factors when present, else total."""
+    if 'tidal_capacity_factors' in site_data:
+        return site_data['tidal_capacity_factors']
+    return site_data['capacity_factors']
+
+
 def _overlay_shoreline(ax, shoreline_path: Optional[str]):
     """Load and plot shoreline shapefile as a background layer."""
     if shoreline_path is None:
@@ -113,7 +120,7 @@ def plot_site_map(site_data: Dict, results: List[Dict],
     """
     lats = site_data['latitudes']
     lons = site_data['longitudes']
-    cfs = site_data['capacity_factors']
+    cfs = _active_cfs(site_data)
 
     # Find the result to display
     feasible = [r for r in results if r['feasible']]
@@ -362,7 +369,7 @@ def plot_site_robustness_map(site_data: Dict, results: List[Dict],
 
     lats = site_data['latitudes']
     lons = site_data['longitudes']
-    cfs = site_data['capacity_factors']
+    cfs = _active_cfs(site_data)
     n_sites = len(lats)
 
     # Count selection frequency per site
@@ -446,7 +453,7 @@ def plot_capacity_factor_comparison(site_data: Dict, results: List[Dict],
         results: List of result dicts
         save_path: Optional path to save figure
     """
-    all_cfs = site_data['capacity_factors']
+    all_cfs = _active_cfs(site_data)
 
     feasible = [r for r in results if r['feasible']]
     if not feasible:
@@ -708,7 +715,7 @@ def plot_comparison_site_map(site_data: Dict, model_results: Dict[str, Dict],
     """
     lats = site_data['latitudes']
     lons = site_data['longitudes']
-    cfs = site_data['capacity_factors']
+    cfs = _active_cfs(site_data)
 
     fig, ax = plt.subplots(figsize=(13, 10))
     _overlay_shoreline(ax, shoreline_path)

@@ -28,7 +28,7 @@ scriptDir = fileparts(mfilename('fullpath'));
 projectRoot = fileparts(scriptDir);
 
 %% Configuration — change REGION to match your data
-region = 'North_Carolina';
+region = 'Florida';
 
 inputDir  = fullfile(projectRoot, 'outputs', region, 'utide_input');
 outputDir = fullfile(projectRoot, 'outputs', region, 'utide_output');

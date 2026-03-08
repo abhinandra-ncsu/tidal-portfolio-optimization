@@ -11,7 +11,7 @@ The MATLAB script (run_utide_analysis.m) must be updated separately.
 """
 
 # Region name — must match a folder under data/regions/
-REGION = "Georgia"  # Options: "North_Carolina", "South_Carolina", "Georgia", "Florida"
+REGION = "Florida"  # Options: "North_Carolina", "South_Carolina", "Georgia", "Florida"
 
 # Turbine model — must match a DEVICE name in data/turbine_specifications.csv
 TURBINE_NAME = "RM1"

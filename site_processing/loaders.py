@@ -443,8 +443,28 @@ def load_site_results(npz_path, require_tidal=False):
         )
 
     if has_tidal:
-        site_data["tidal_capacity_factors"] = data["tidal_capacity_factors"]
-        site_data["tidal_power_timeseries"] = data["tidal_power_timeseries"]
+        tidal_cf = data["tidal_capacity_factors"]
+        tidal_power = data["tidal_power_timeseries"]
+
+        if require_tidal:
+            # Filter to only sites with positive tidal capacity factors
+            # (removes NaN and zero-CF sites that produce no tidal energy)
+            valid_mask = np.isfinite(tidal_cf) & (tidal_cf > 0)
+            n_valid = int(valid_mask.sum())
+            n_total = len(tidal_cf)
+            if n_valid < n_total:
+                site_data["latitudes"] = site_data["latitudes"][valid_mask]
+                site_data["longitudes"] = site_data["longitudes"][valid_mask]
+                site_data["capacity_factors"] = site_data["capacity_factors"][valid_mask]
+                site_data["dist_to_shore_km"] = site_data["dist_to_shore_km"][valid_mask]
+                site_data["power_timeseries"] = site_data["power_timeseries"][valid_mask]
+                site_data["depths_m"] = site_data["depths_m"][valid_mask]
+                site_data["n_sites"] = n_valid
+                tidal_cf = tidal_cf[valid_mask]
+                tidal_power = tidal_power[valid_mask]
+
+        site_data["tidal_capacity_factors"] = tidal_cf
+        site_data["tidal_power_timeseries"] = tidal_power
 
     config = {
         "turbine_name": str(data["turbine_name"]),
