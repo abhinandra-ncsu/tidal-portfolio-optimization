@@ -44,8 +44,7 @@ def save_optimization_json(results, site_data, turbine, input_npz, output_path, 
     Parameters
     ----------
     results : dict
-        Output from ``run_portfolio_optimization()``, ``run_lcoe_optimization()``,
-        or ``run_generation_optimization()``.
+        Output from ``run_portfolio_optimization()``.
     site_data : dict
         Site data dict (latitudes, longitudes, capacity_factors, etc.).
     turbine : dict
@@ -256,8 +255,7 @@ def save_optimization_results(
     Parameters
     ----------
     results : dict
-        Output from ``run_portfolio_optimization()``,
-        ``run_lcoe_optimization()``, or ``run_generation_optimization()``.
+        Output from ``run_portfolio_optimization()``.
     site_data : dict
         Site data dict from ``load_site_results()``.
     turbine : dict

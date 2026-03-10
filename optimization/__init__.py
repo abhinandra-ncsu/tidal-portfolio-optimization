@@ -41,9 +41,6 @@ from .model import (
     extract_solution_metrics,
 )
 
-# Enumeration-based models
-from .lcoe_model import run_lcoe_optimization, run_generation_optimization
-
 # Result saving / loading
 from .save_results import save_optimization_results, load_optimization_results
 
@@ -61,9 +58,6 @@ __all__ = [
     "validate_model_inputs",
     "build_optimization_model",
     "extract_solution_metrics",
-    # Enumeration-based models
-    "run_lcoe_optimization",
-    "run_generation_optimization",
     # Result saving / loading
     "save_optimization_results",
     "load_optimization_results",

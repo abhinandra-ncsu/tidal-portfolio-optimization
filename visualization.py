@@ -81,7 +81,7 @@ def plot_lcoe_vs_variance(results: List[Dict], save_path: Optional[str] = None):
 
     # Labels
     ax.set_xlabel('Achieved LCOE ($/MWh)', fontsize=12)
-    ax.set_ylabel('Portfolio Variance (MW²)', fontsize=12)
+    ax.set_ylabel('Portfolio Variance (MW\u00b2)', fontsize=12)
     ax.set_title('LCOE vs Portfolio Variance\n(Pareto Frontier)', fontsize=14, fontweight='bold')
 
     # Colorbar
@@ -179,7 +179,7 @@ def plot_site_map(site_data: Dict, results: List[Dict],
         title = (f'Selected Sites for LCOE Target ${result["lcoe_target"]}/MWh\n'
                  f'Achieved: ${result["lcoe"]:.0f}/MWh | Variance: {result["variance"]:.1f} MW\u00b2')
     else:
-        title = (f'Selected Sites — LCOE: ${result["lcoe"]:.0f}/MWh | '
+        title = (f'Selected Sites \u2014 LCOE: ${result["lcoe"]:.0f}/MWh | '
                  f'Variance: {result["variance"]:.1f} MW\u00b2')
     ax.set_title(title, fontsize=14, fontweight='bold')
 
@@ -352,7 +352,7 @@ def plot_site_robustness_map(site_data: Dict, results: List[Dict],
     Plot geographic robustness map: marker size = selection frequency,
     marker color = capacity factor.
 
-    Sites selected across many LCOE targets are "robust" — the optimizer
+    Sites selected across many LCOE targets are "robust" \u2014 the optimizer
     consistently wants them regardless of how tight the cost constraint is.
 
     Args:
@@ -393,7 +393,7 @@ def plot_site_robustness_map(site_data: Dict, results: List[Dict],
 
     # Selected sites: size proportional to frequency
     sel_mask = freq > 0
-    sel_sizes = 60 + 200 * (freq[sel_mask] / max_freq)  # range ~60–260
+    sel_sizes = 60 + 200 * (freq[sel_mask] / max_freq)  # range ~60\u2013260
 
     scatter = ax.scatter(lons[sel_mask], lats[sel_mask],
                          c=cfs[sel_mask], cmap='Blues',
@@ -614,8 +614,8 @@ def plot_all(site_data: Dict, results: Dict, save_dir: Optional[str] = None,
     """
     Generate all visualization plots in a two-level narrative.
 
-    Level 1 — Per LCOE target: deployment map + cost breakdown
-    Level 2 — Across targets: Pareto frontier + cost breakdown + correlation evolution
+    Level 1 \u2014 Per LCOE target: deployment map + cost breakdown
+    Level 2 \u2014 Across targets: Pareto frontier + cost breakdown + correlation evolution
 
     Args:
         site_data: Dict with site information (must include power_timeseries)
@@ -642,19 +642,19 @@ def plot_all(site_data: Dict, results: Dict, save_dir: Optional[str] = None,
     print("GENERATING VISUALIZATION PLOTS")
     print("=" * 60)
 
-    # ── Level 1: Per-LCOE deployment maps ──────────────────────────────
-    print("\n── Level 1: Per-LCOE Deployment Maps ──")
+    # \u2500\u2500 Level 1: Per-LCOE deployment maps \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    print("\n\u2500\u2500 Level 1: Per-LCOE Deployment Maps \u2500\u2500")
     for r in feasible:
         step += 1
         lcoe = r['lcoe_target']
-        print(f"\n[{step}/{n_total}] Deployment Map — LCOE ${lcoe}/MWh...")
+        print(f"\n[{step}/{n_total}] Deployment Map \u2014 LCOE ${lcoe}/MWh...")
         save_path = (f"{save_dir}/site_map_lcoe_{lcoe}.png"
                      if save_dir else None)
         plot_site_map(site_data, result_list, lcoe_target=lcoe,
                       shoreline_path=shoreline_path, save_path=save_path)
 
-    # ── Level 2: Cross-target analysis ─────────────────────────────────
-    print("\n── Level 2: Cross-Target Analysis ──")
+    # \u2500\u2500 Level 2: Cross-target analysis \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    print("\n\u2500\u2500 Level 2: Cross-Target Analysis \u2500\u2500")
 
     # Pareto Frontier
     step += 1
@@ -679,434 +679,3 @@ def plot_all(site_data: Dict, results: Dict, save_dir: Optional[str] = None,
     if save_dir:
         print(f"Figures saved to: {save_dir}/")
     print("=" * 60)
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# Model Comparison Plots
-# ═══════════════════════════════════════════════════════════════════════════════
-
-_MODEL_COLORS = {
-    'Min-Variance': '#2ecc71',
-    'Min-LCOE': '#3498db',
-    'Max-Generation': '#e74c3c',
-}
-_MODEL_MARKERS = {
-    'Min-Variance': 's',
-    'Min-LCOE': 'D',
-    'Max-Generation': '^',
-}
-
-
-def plot_comparison_site_map(site_data: Dict, model_results: Dict[str, Dict],
-                              shoreline_path: Optional[str] = None,
-                              save_path: Optional[str] = None):
-    """
-    Plot geographic map with selected sites from each model overlaid.
-
-    Each model's selections are shown in a distinct color/marker.
-    Shared sites get a special highlight ring.
-
-    Args:
-        site_data: Dict with latitudes, longitudes, capacity_factors
-        model_results: Dict mapping model name to its single result dict,
-            e.g. {'Min-Variance': result, 'Min-LCOE': result, ...}
-        shoreline_path: Optional path to shoreline shapefile
-        save_path: Optional path to save figure
-    """
-    lats = site_data['latitudes']
-    lons = site_data['longitudes']
-    cfs = _active_cfs(site_data)
-
-    fig, ax = plt.subplots(figsize=(13, 10))
-    _overlay_shoreline(ax, shoreline_path)
-
-    # Background: all candidate sites
-    ax.scatter(lons, lats, c=cfs, cmap='Blues', s=25, alpha=0.35,
-               edgecolors='gray', linewidth=0.3, vmin=0, vmax=cfs.max(),
-               zorder=2, label='_nolegend_')
-
-    # Overlay each model's selections
-    offset_lon = [-0.012, 0.0, 0.012]  # slight jitter so overlapping markers are visible
-    legend_handles = []
-
-    for k, (name, result) in enumerate(model_results.items()):
-        if result is None or not result.get('feasible'):
-            continue
-        sel = result['selected_sites']
-        cp = result['collection_point']
-
-        color = _MODEL_COLORS.get(name, f'C{k}')
-        marker = _MODEL_MARKERS.get(name, 'o')
-
-        # Selected sites
-        h = ax.scatter(lons[sel] + offset_lon[k % 3], lats[sel],
-                        s=180, marker=marker, c=color, edgecolors='black',
-                        linewidth=1.5, zorder=5 + k)
-        legend_handles.append(h)
-
-        # Collection point
-        ax.scatter(lons[cp] + offset_lon[k % 3], lats[cp],
-                    s=350, marker='*', c=color, edgecolors='black',
-                    linewidth=1.5, zorder=6 + k)
-
-        # Lines from sites to CP
-        for si in sel:
-            ax.plot([lons[si] + offset_lon[k % 3], lons[cp] + offset_lon[k % 3]],
-                    [lats[si], lats[cp]],
-                    color=color, alpha=0.35, linewidth=1, zorder=3)
-
-    ax.set_xlabel('Longitude (\u00b0)', fontsize=12)
-    ax.set_ylabel('Latitude (\u00b0)', fontsize=12)
-    ax.set_title('Model Comparison — Selected Sites', fontsize=14, fontweight='bold')
-
-    ax.legend(legend_handles,
-              [n for n, r in model_results.items() if r and r.get('feasible')],
-              loc='upper left', fontsize=10, title='Model')
-
-    ax.grid(True, alpha=0.3)
-    plt.tight_layout()
-
-    if save_path:
-        plt.savefig(save_path, dpi=150, bbox_inches='tight')
-        print(f"Saved: {save_path}")
-
-    plt.close(fig)
-
-
-def plot_comparison_metrics(model_results: Dict[str, Dict],
-                             save_path: Optional[str] = None):
-    """
-    Bar chart comparing LCOE, variance, and energy across models.
-
-    Three side-by-side subplots with one bar per model.
-
-    Args:
-        model_results: Dict mapping model name to its single result dict
-        save_path: Optional path to save figure
-    """
-    names = []
-    lcoes, variances, energies = [], [], []
-
-    for name, r in model_results.items():
-        if r is None or not r.get('feasible'):
-            continue
-        names.append(name)
-        lcoes.append(r['lcoe'])
-        variances.append(r['variance'])
-        energies.append(r['total_energy'] / 1e3)  # GWh
-
-    if not names:
-        print("No feasible results to plot.")
-        return
-
-    colors = [_MODEL_COLORS.get(n, 'gray') for n in names]
-    x = np.arange(len(names))
-
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-
-    for ax, vals, ylabel, title, fmt in zip(
-        axes,
-        [lcoes, variances, energies],
-        ['$/MWh', 'MW\u00b2', 'GWh/year'],
-        ['LCOE', 'Portfolio Variance', 'Net Energy'],
-        ['${:.0f}', '{:.1f}', '{:.1f}'],
-    ):
-        bars = ax.bar(x, vals, color=colors, edgecolor='black', width=0.55)
-        ax.set_xticks(x)
-        ax.set_xticklabels(names, fontsize=10)
-        ax.set_ylabel(ylabel, fontsize=11)
-        ax.set_title(title, fontsize=13, fontweight='bold')
-        ax.grid(True, alpha=0.3, axis='y')
-
-        for bar, v in zip(bars, vals):
-            ax.annotate(fmt.format(v),
-                        (bar.get_x() + bar.get_width() / 2, bar.get_height()),
-                        ha='center', va='bottom', fontsize=10, fontweight='bold')
-
-    fig.suptitle('Model Comparison — Key Metrics', fontsize=15, fontweight='bold', y=1.02)
-    plt.tight_layout()
-
-    if save_path:
-        plt.savefig(save_path, dpi=150, bbox_inches='tight')
-        print(f"Saved: {save_path}")
-
-    plt.close(fig)
-
-
-def plot_comparison_cost_breakdown(model_results: Dict[str, Dict],
-                                    save_path: Optional[str] = None):
-    """
-    Stacked bar chart of cost breakdown for each model.
-
-    Args:
-        model_results: Dict mapping model name to its single result dict
-        save_path: Optional path to save figure
-    """
-    names = []
-    fixed, inter, trans = [], [], []
-
-    for name, r in model_results.items():
-        if r is None or not r.get('feasible'):
-            continue
-        names.append(name)
-        cb = r['cost_breakdown']
-        fixed.append(cb['fixed'] / 1e6)
-        inter.append(cb['inter_array'] / 1e6)
-        trans.append(cb['transmission'] / 1e6)
-
-    if not names:
-        print("No feasible results to plot.")
-        return
-
-    x = np.arange(len(names))
-    width = 0.55
-
-    fig, ax = plt.subplots(figsize=(10, 6))
-
-    bars_fixed = ax.bar(x, fixed, width, label='Device + Intra-Array', color='#2ecc71')
-    bars_inter = ax.bar(x, inter, width, bottom=fixed, label='Inter-Array Cable', color='#3498db')
-    bottoms_trans = [f + i for f, i in zip(fixed, inter)]
-    bars_trans = ax.bar(x, trans, width, bottom=bottoms_trans,
-                        label='Transmission', color='#e74c3c')
-
-    # Dollar labels inside each stacked segment
-    for bars, vals, bases in [
-        (bars_fixed, fixed, [0] * len(names)),
-        (bars_inter, inter, fixed),
-        (bars_trans, trans, bottoms_trans),
-    ]:
-        for bar, v, base in zip(bars, vals, bases):
-            if v > 0.5:  # skip tiny segments
-                cy = base + v / 2
-                ax.text(bar.get_x() + bar.get_width() / 2, cy,
-                        f'${v:.1f}M', ha='center', va='center',
-                        fontsize=9, fontweight='bold', color='white')
-
-    # Total labels on top
-    for i in range(len(names)):
-        total = fixed[i] + inter[i] + trans[i]
-        ax.annotate(f'${total:.1f}M', (i, total + 0.2),
-                    ha='center', fontsize=10, fontweight='bold')
-
-    ax.set_xticks(x)
-    ax.set_xticklabels(names, fontsize=11)
-    ax.set_ylabel('Annual Cost ($M/year)', fontsize=12)
-    ax.set_title('Cost Breakdown by Model', fontsize=14, fontweight='bold')
-    ax.legend(bbox_to_anchor=(0.5, -0.10), loc='upper center', ncol=3,
-              fontsize=10, frameon=True)
-    ax.grid(True, alpha=0.3, axis='y')
-
-    plt.tight_layout(rect=[0, 0.06, 1, 1])
-
-    if save_path:
-        plt.savefig(save_path, dpi=150, bbox_inches='tight')
-        print(f"Saved: {save_path}")
-
-    plt.close(fig)
-
-
-def plot_comparison_radar(model_results: Dict[str, Dict],
-                          save_path: Optional[str] = None):
-    """
-    Radar chart comparing normalized metrics across models.
-
-    Metrics are normalized to [0, 1] where 1 = best.  LCOE and variance
-    are inverted so outward = better on every axis.
-
-    Args:
-        model_results: Dict mapping model name to its single result dict
-        save_path: Optional path to save figure
-    """
-    names = []
-    raw = {'lcoe': [], 'variance': [], 'energy': [], 'avg_cf': []}
-
-    for name, r in model_results.items():
-        if r is None or not r.get('feasible'):
-            continue
-        names.append(name)
-        raw['lcoe'].append(r['lcoe'])
-        raw['variance'].append(r['variance'])
-        raw['energy'].append(r['total_energy'] / 1e3)  # GWh
-
-        sites = r.get('selected_sites', [])
-        if sites and isinstance(sites[0], dict) and 'capacity_factor' in sites[0]:
-            avg_cf = np.mean([s['capacity_factor'] for s in sites])
-        else:
-            avg_cf = 0.0
-        raw['avg_cf'].append(avg_cf)
-
-    if len(names) < 2:
-        print("Need at least 2 feasible models for radar chart.")
-        return
-
-    # Normalize to [0, 1]; invert LCOE and variance (lower is better)
-    metrics = ['LCOE', 'Variance', 'Energy', 'Avg CF']
-    invert = [True, True, False, False]
-    arrays = [raw['lcoe'], raw['variance'], raw['energy'], raw['avg_cf']]
-
-    normalized = []
-    for vals, inv in zip(arrays, invert):
-        lo, hi = min(vals), max(vals)
-        if hi - lo < 1e-12:
-            normalized.append([1.0] * len(vals))
-        elif inv:
-            normalized.append([(hi - v) / (hi - lo) for v in vals])
-        else:
-            normalized.append([(v - lo) / (hi - lo) for v in vals])
-
-    n_metrics = len(metrics)
-    angles = np.linspace(0, 2 * np.pi, n_metrics, endpoint=False).tolist()
-    angles += angles[:1]  # close polygon
-
-    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
-
-    for i, name in enumerate(names):
-        values = [normalized[m][i] for m in range(n_metrics)]
-        values += values[:1]
-        color = _MODEL_COLORS.get(name, f'C{i}')
-        ax.plot(angles, values, 'o-', linewidth=2, color=color, label=name)
-        ax.fill(angles, values, alpha=0.25, color=color)
-
-    ax.set_thetagrids(np.degrees(angles[:-1]), metrics, fontsize=11)
-    ax.set_ylim(0, 1.15)
-    ax.set_yticks([0.25, 0.5, 0.75, 1.0])
-    ax.set_yticklabels(['0.25', '0.50', '0.75', '1.00'], fontsize=8,
-                        color='gray')
-    ax.set_title('Model Comparison — Radar', fontsize=14, fontweight='bold',
-                 pad=20)
-    ax.legend(bbox_to_anchor=(0.5, -0.08), loc='upper center',
-              ncol=len(names), fontsize=10, frameon=True)
-
-    plt.tight_layout(rect=[0, 0.04, 1, 1])
-
-    if save_path:
-        plt.savefig(save_path, dpi=150, bbox_inches='tight')
-        print(f"Saved: {save_path}")
-
-    plt.close(fig)
-
-
-def plot_comparison_pareto_overlay(loaded: List, save_path: Optional[str] = None):
-    """
-    Pareto frontier from min-variance results with min-LCOE and max-generation
-    overlaid as distinct markers.
-
-    Args:
-        loaded: List of (display_name, json_dict_or_None) from the comparison
-                script.  The min-variance entry has multiple ``results``
-                (one per LCOE target); enumeration models have a single result.
-        save_path: Optional path to save figure
-    """
-    fig, ax = plt.subplots(figsize=(10, 7))
-
-    for display_name, data in loaded:
-        if data is None:
-            continue
-
-        results = data.get('results', [])
-        feasible = [r for r in results if r.get('feasible')]
-        if not feasible:
-            continue
-
-        color = _MODEL_COLORS.get(display_name, 'gray')
-        marker = _MODEL_MARKERS.get(display_name, 'o')
-
-        if display_name == 'Min-Variance' and len(feasible) > 1:
-            # Frontier curve
-            feasible_sorted = sorted(feasible, key=lambda r: r['variance'])
-            variances = [r['variance'] for r in feasible_sorted]
-            lcoes = [r['lcoe'] for r in feasible_sorted]
-            targets = [r.get('lcoe_target', 0) for r in feasible_sorted]
-
-            scatter = ax.scatter(variances, lcoes, c=targets, cmap='RdYlGn_r',
-                                 s=80, edgecolors='black', linewidth=1,
-                                 zorder=4)
-            ax.plot(variances, lcoes, '--', color='gray', linewidth=1.5,
-                    alpha=0.6, zorder=3)
-            plt.colorbar(scatter, ax=ax, label='LCOE Target ($/MWh)',
-                         shrink=0.8)
-        else:
-            # Single-point overlay (enumeration model)
-            best = data.get('best_result', {})
-            v = best.get('variance') or feasible[0].get('variance')
-            l = best.get('lcoe') or feasible[0].get('lcoe')
-            ax.scatter([v], [l], s=200, marker=marker, c=color,
-                       edgecolors='black', linewidth=2, zorder=6,
-                       label=display_name)
-            ax.annotate(display_name, (v, l),
-                        textcoords='offset points', xytext=(10, 8),
-                        fontsize=10, fontweight='bold', color=color)
-
-    ax.set_xlabel('Portfolio Variance (MW²)', fontsize=12)
-    ax.set_ylabel('LCOE ($/MWh)', fontsize=12)
-    ax.set_title('Pareto Frontier with Model Overlay', fontsize=14,
-                 fontweight='bold')
-    ax.legend(fontsize=10)
-    ax.grid(True, alpha=0.3)
-    plt.tight_layout()
-
-    if save_path:
-        plt.savefig(save_path, dpi=150, bbox_inches='tight')
-        print(f"Saved: {save_path}")
-
-    plt.close(fig)
-
-
-def plot_comparison_cf_profile(model_results: Dict[str, Dict],
-                               save_path: Optional[str] = None):
-    """
-    Grouped bar chart of capacity factor per selected site, grouped by model.
-
-    Args:
-        model_results: Dict mapping model name to its single result dict.
-            Each result must have ``selected_sites`` with ``capacity_factor``.
-        save_path: Optional path to save figure
-    """
-    models = []
-    for name, r in model_results.items():
-        if r is None or not r.get('feasible'):
-            continue
-        sites = r.get('selected_sites', [])
-        if sites and isinstance(sites[0], dict) and 'capacity_factor' in sites[0]:
-            cfs = [s['capacity_factor'] for s in sites]
-            models.append((name, cfs))
-
-    if not models:
-        print("No CF data available for profile plot.")
-        return
-
-    n_models = len(models)
-    n_sites = max(len(cfs) for _, cfs in models)
-    bar_width = 0.25
-    x = np.arange(n_sites)
-
-    fig, ax = plt.subplots(figsize=(10, 6))
-
-    for k, (name, cfs) in enumerate(models):
-        padded = cfs + [0] * (n_sites - len(cfs))
-        offset = (k - (n_models - 1) / 2) * bar_width
-        color = _MODEL_COLORS.get(name, f'C{k}')
-        bars = ax.bar(x + offset, [c * 100 for c in padded], bar_width,
-                       label=name, color=color, edgecolor='black',
-                       linewidth=0.8)
-
-        for bar, c in zip(bars, padded):
-            if c > 0:
-                ax.text(bar.get_x() + bar.get_width() / 2,
-                        bar.get_height() + 0.3,
-                        f'{c:.1%}', ha='center', va='bottom', fontsize=8)
-
-    ax.set_xticks(x)
-    ax.set_xticklabels([f'Array {i+1}' for i in range(n_sites)], fontsize=11)
-    ax.set_ylabel('Capacity Factor (%)', fontsize=12)
-    ax.set_title('Capacity Factor Profile by Model', fontsize=14,
-                 fontweight='bold')
-    ax.legend(fontsize=10)
-    ax.grid(True, alpha=0.3, axis='y')
-    plt.tight_layout()
-
-    if save_path:
-        plt.savefig(save_path, dpi=150, bbox_inches='tight')
-        print(f"Saved: {save_path}")
-
-    plt.close(fig)

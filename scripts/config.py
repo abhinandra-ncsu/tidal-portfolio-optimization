@@ -3,8 +3,7 @@ Shared Script Configuration
 ============================
 
 Single source of truth for parameters that must stay in sync across
-run_energy_pipeline.py, visualize_energy_pipeline.py, run_optimization.py,
-and run_model_comparison.py.
+run_energy_pipeline.py, visualize_energy_pipeline.py, and run_optimization.py.
 
 Change REGION here and all scripts pick it up automatically.
 The MATLAB script (run_utide_analysis.m) must be updated separately.

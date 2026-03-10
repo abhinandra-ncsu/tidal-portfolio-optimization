@@ -45,8 +45,6 @@ from .site_processing.turbine import load_turbine
 # Main optimization functions
 from .optimization import (
     run_portfolio_optimization,
-    run_lcoe_optimization,
-    run_generation_optimization,
     calculate_distance_matrix,
     get_best_result,
     save_optimization_results,
@@ -96,8 +94,6 @@ __all__ = [
     "load_turbine",
     # Main optimization functions
     "run_portfolio_optimization",
-    "run_lcoe_optimization",
-    "run_generation_optimization",
     "calculate_distance_matrix",
     "get_best_result",
     "save_optimization_results",
